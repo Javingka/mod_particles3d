@@ -1,4 +1,4 @@
-function triangleShape( elementCount, elementSize, listX, listY, listZ ){
+function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
 	var elements = elementCount;
 
 	var geometry = new THREE.BufferGeometry();
@@ -117,7 +117,7 @@ function triangleShape( elementCount, elementSize, listX, listY, listZ ){
 	scene.add( mesh );
 }
 
-function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ  ){
+function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, listZ  ){
 	var elements = elementCount;
 
 	var geometry = new THREE.BufferGeometry();
@@ -145,8 +145,8 @@ function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ
 	var ab = new THREE.Vector3();
 
   var rad = d - d2;
+  // loop to set the position, normal and color arrays we will pass to addAttribute for geometry object
 	for ( var i = 0 ; i < positions.length; i += totalData) {
-
 		// positions
     var obj_i = Math.round(i/totalData);
     // center used to begin to calculate a random triangle
@@ -157,12 +157,12 @@ function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ
     var polyVertex = [];
 
     // Faces should always be pair
-    var ang = 360/(faces/2);
+    var ang = Math.PI*2/(faces/2);
     for ( var v = 0; v < (faces/2); v++) {
-      var angle =  (ang*v) * Math.PI / 180;
-      polyVertex.push(x + Math.cos(angle) * rad);
+      var angle =  (ang*v);// * Math.PI / 180;
+      polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
       polyVertex.push(y);
-      polyVertex.push(z + Math.sin(angle) * rad);
+      polyVertex.push(z + Math.sin(angle) * rad/2);
     } 
   
     angle =  0 * Math.PI / 180;
@@ -170,25 +170,39 @@ function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ
     polyVertex.push(y + Math.cos(angle) * rad);
     polyVertex.push(z);
 
+    angle =  0 * Math.PI / 180;
     polyVertex.push(x);
     polyVertex.push(y - Math.cos(angle) * rad);
     polyVertex.push(z);
 
-    //Setting the faces
-    var cons = 9; // number of vertex in the base plane. each one with x,y,z coordinates
+    /* Setting the positions of each vertex
+     * position (i) selected by /the (f)ace/the vertex/the coordinate x,y and z 
+     * the values from the previous stored points, are fetched in loop. except with the last two points, the upper and lower point that create the polyhedron 
+     */
+    var cons = 3 * faces/2; // number of vertex in the base plane. each one with x,y,z coordinates
     for ( var f = 0; f < faces; f++) {
-       
-      positions[ i + (9*f) ]     = polyVertex[(f*3)%cons];
-      positions[ i + (9*f) + 1 ] = polyVertex[(f*3+1)%cons];
-      positions[ i + (9*f) + 2 ] = polyVertex[(f*3+2)%cons];
-
-      positions[ i + (9*f) + 3 ] = polyVertex[(f*3+3)%cons];
-      positions[ i + (9*f) + 4 ] = polyVertex[(f*3+4)%cons];
-      positions[ i + (9*f) + 5 ] = polyVertex[(f*3+5)%cons];
-
+      // The order of the vertex determines the visible face of the triangle
       var indexY;
-      if ( f < faces/2) indexY = polyVertex.length-3;
-      else indexY = polyVertex.length-6; 
+      if ( f < faces/2) {
+        indexY = polyVertex.length-3;
+        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+2)%cons];
+
+        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+5)%cons];
+      }
+      else {
+        indexY = polyVertex.length-6; 
+        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+2)%cons];
+
+        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+5)%cons];
+      }
 
       positions[ i + (9*f) + 6 ] = polyVertex[indexY];
       positions[ i + (9*f) + 7 ] = polyVertex[indexY+1];
@@ -221,22 +235,22 @@ function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ
 		    cb.cross( ab );
 		    cb.normalize();
       }
-
+      
 		  var nx = cb.x;
 		  var ny = cb.y;
 		  var nz = cb.z;
 
-		  normals[ (i*f) ]     = nx;
-		  normals[ (i*f) + 1 ] = ny;
-		  normals[ (i*f) + 2 ] = nz;
+		  normals[i + (9*f) ]     = nx;
+		  normals[i + (9*f) + 1 ] = ny;
+		  normals[i + (9*f) + 2 ] = nz;
 
-		  normals[ (i*f) + 3 ] = nx;
-		  normals[ (i*f) + 4 ] = ny;
-		  normals[ (i*f) + 5 ] = nz;
+		  normals[i + (9*f) + 3 ] = nx;
+		  normals[i + (9*f) + 4 ] = ny;
+		  normals[i + (9*f) + 5 ] = nz;
 
-		  normals[ (i*f) + 6 ] = nx;
-		  normals[ (i*f) + 7 ] = ny;
-		  normals[ (i*f) + 8 ] = nz;
+		  normals[i + (9*f) + 6 ] = nx;
+		  normals[i + (9*f) + 7 ] = ny;
+		  normals[i + (9*f) + 8 ] = nz;
     }
 
   
@@ -262,14 +276,13 @@ function bipyramidShape( elementCount, elementSize, faceNum, listX, listY, listZ
 	geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3) );
 	geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3) );
 
-  //	geometry.computeBoundingBox();
-  geometry.computeBoundingSphere();
-
- var material = new THREE.MeshBasicMaterial( {
+  geometry.computeBoundingBox();
+  //geometry.computeBoundingSphere();
+  var material = new THREE.MeshBasicMaterial( {
      color: 0xaaaaaa,  vertexColors: THREE.VertexColors, transparent: false
 	} );
-//  material.side = THREE.DoubleSide
-
 	mesh = new THREE.Mesh( geometry, material );
 	scene.add( mesh );
+  //var edges = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
+  //scene.add( edges );
 }

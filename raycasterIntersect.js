@@ -45,7 +45,7 @@ function raycasterIntersect() {
     // intersect.index consider the total vertex list, /3 gives one vertex_id per face.
     // and /faceNum reduce the list to the total ob element (each element has faceNumb number of faces) 
     // the result is going to be a float number. the integer part of that number is the element ID.
-    var idElementSelected =  Math.floor( intersect.index/3 / faceNumb );
+    var indexElementRollover =  Math.floor( intersect.index/3 / faceNumb );
 //    console.log ("Element selected Id: " + idElementSelected); 
 
     //set the line values to draw the white border of the intersected face

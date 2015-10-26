@@ -120,6 +120,12 @@ function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
 function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, listZ  ){
 	var elements = elementCount;
 
+/*  if(Object.prototype.toString.call( listColor ) === '[object Array]') {
+    //TODO: pass the array color to the geometry
+  } else {
+    defaultElementColor = new THREE.Color(3,3,3);
+  }*/
+
 	var geometry = new THREE.BufferGeometry();
 
   var faces = faceNum;// 6; // 6 é o minimo
@@ -256,13 +262,13 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
   
 		// colors
 
-		var vx = ( x / n ) + 0.5;
-		var vy = ( y / n ) + 0.5;
-		var vz = ( z / n ) + 0.5;
+    var vx = expColorR(x/n2,y/n2,z/n2,i);
+    var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
+    var vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
     
-    vx = x / (n+2);
-    color.setHSL(vx, 1.0, 0.5 );
-    //		color.setRGB( vx, vy, vz );
+    //vx = x / (n+2);
+    //color.setHSL(vx, 1.0, 0.5 );
+    color.setRGB( vx, vy, vz );
     // fill the vertex colors r,g,b 
     for ( var c = 0; c<totalData/3; c++) {
       colors[ i + (3*c) ]     = color.r;

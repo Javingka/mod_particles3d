@@ -1,9 +1,11 @@
+
 var controls; // mouse navigation
 var container;// DOM canvas to draw 
 var stats; // fps stats
 var camera, scene, renderer;
 var raycaster, mouse;
 var mesh, line;
+var defaultElementColor;
 
 var controlsParam = [];
 var faceNumb; //variable to set the number of each element's faces 
@@ -17,6 +19,7 @@ var lastIndexMouseCol = new THREE.Color();
  * Set a new scatter 3d 
  * @param {elementCount} how many elements will be rendered  
  * @param {elementSize} size of the element  
+ * @param {color} Color or array of colors. 
  * @param {listX} list of x coordinates 
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
@@ -24,6 +27,7 @@ var lastIndexMouseCol = new THREE.Color();
 function initScatter( elementCount, elementSize, listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
   
+
   //create a camera, and set the position according the last camera visualization positions if existed
   camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, .1, 15000 );
   if(typeof controls !== 'undefined') {
@@ -35,7 +39,10 @@ function initScatter( elementCount, elementSize, listX, listY, listZ  ) {
   } else {
     camera.position.z = 4000;
   }
-
+  if(typeof mesh !== 'undefined') {
+    console.log('removing old mesh');
+    scene.remove( mesh );
+  }
   //create the scene to render
   scene = new THREE.Scene();
 

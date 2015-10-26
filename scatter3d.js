@@ -24,7 +24,7 @@ var lastIndexMouseCol = new THREE.Color();
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
  */
-function initScatter( elementCount, elementSize, listX, listY, listZ  ) {
+function initScatter( elementCount, elementSize, geometryType, listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
   
 
@@ -58,10 +58,14 @@ function initScatter( elementCount, elementSize, listX, listY, listZ  ) {
   //Create the scatter points! | IF THE ELEMENT GEOMETRY CHANGE, IT SHOULD CHANGE THE faceNumb TOO;
   faceNumb = 6;
   if(typeof listX !== 'undefined') {
-    addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
+    if (geometryType == 0) addTriangleShape( elementCount, elementSize, listX, listY, listZ);
+    else addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
+    //addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize, listX, listY, listZ );
   } else {
-    addPolyhedronMesh( elementCount, elementSize, faceNumb);
+    if (geometryType == 0) addTriangleShape( elementCount, elementSize);
+    else addPolyhedronMesh( elementCount, elementSize, faceNumb);
+    //addPolyhedronMesh( elementCount, elementSize, faceNumb);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize );
   }
 

@@ -6,12 +6,6 @@ function onMessageReceived( event ){
     console.log( "onMessageReceived, event.data:", event.data );
 
     if (typeof event !== 'undefined') {
-      //fetch the particle positions
-      var listX = typeof event.data[0][3] !== 'undefined'?event.data[0][3]:[]; // new mo.NumberList();
-      var listY = typeof event.data[0][4] !== 'undefined'?event.data[0][4]:[]; //new mo.NumberList();
-      var listZ = typeof event.data[0][5] !== 'undefined'?event.data[0][5]:[]; //new mo.NumberList();
-      console.log("lists: ",listX, listY, listZ);
-
       //the particle sizes
       var nodeSize = event.data[0][1]; // 4 - 10 are good sizes to large elements
 
@@ -19,10 +13,19 @@ function onMessageReceived( event ){
       var expCx = event.data[0][2][0];
       var expCy = event.data[0][2][1];
       var expCz = event.data[0][2][2];
-      console.log(expCx);
       expColorR = new Function('x,y,z,n', 'return '+ expCx );
       expColorG = new Function('x,y,z,n', 'return '+ expCy );
       expColorB = new Function('x,y,z,n', 'return '+ expCz );
+
+     //fetch the particle positions
+      var listX = typeof event.data[0][3] !== 'undefined'?event.data[0][3]:[]; // new mo.NumberList();
+      var listY = typeof event.data[0][4] !== 'undefined'?event.data[0][4]:[]; //new mo.NumberList();
+      var listZ = typeof event.data[0][5] !== 'undefined'?event.data[0][5]:[]; //new mo.NumberList();
+      console.log("lists: ",listX, listY, listZ);
+
+      //type of geometryElement
+      var geometryType = typeof event.data[0][6] !== 'undefined'?event.data[0][6]:0; // new mo.NumberList();
+      console.log("geometry type: ", geometryType );
 
 /*      if(Object.prototype.toString.call( event.data[0][5] ) === '[object Array]') {
         console.log( "color array" );
@@ -43,11 +46,11 @@ function onMessageReceived( event ){
       //if the lists have the same lenght and have more than 1 element. use the list to get the particles number
       if ( listX.length == listY.length && listY.length == listZ.length && listX.length > 0){
         var particleNumber = listX.length;
-        initScatter( particleNumber, nodeSize, listX, listY, listZ  );
+        initScatter( particleNumber, nodeSize, geometryType , listX, listY, listZ );
       }
       else {
         var particleNumber = parseInt(event.data[0]);
-        initScatter( particleNumber, nodeSize); 
+        initScatter( particleNumber, nodeSize, geometryType ); 
       }
       animateScatter();
     }

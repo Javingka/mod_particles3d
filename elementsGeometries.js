@@ -119,8 +119,7 @@ function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
 
 function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, listZ  ){
 	var elements = elementCount;
-
-/*  if(Object.prototype.toString.call( listColor ) === '[object Array]') {
+  /*  if(Object.prototype.toString.call( listColor ) === '[object Array]') {
     //TODO: pass the array color to the geometry
   } else {
     defaultElementColor = new THREE.Color(3,3,3);
@@ -159,13 +158,13 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
     var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[obj_i] * n2);
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
-    // the five vertex of the polyhedron 
+    // the vertexs of the polyhedron 
     var polyVertex = [];
 
     // Faces should always be pair
     var ang = Math.PI*2/(faces/2);
     for ( var v = 0; v < (faces/2); v++) {
-      var angle =  (ang*v);// * Math.PI / 180;
+      var angle = (ang*v);// * Math.PI / 180;
       polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
       polyVertex.push(y);
       polyVertex.push(z + Math.sin(angle) * rad/2);
@@ -216,7 +215,6 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
     }  
 
 		// flat face normals
-
     for ( var f = 0; f < faces; f++) { // face*3 =6
       pA.set( polyVertex[(f*3)%cons] , 
         polyVertex[(f*3+1)%cons],
@@ -261,7 +259,6 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
 
   
 		// colors
-
     var vx = expColorR(x/n2,y/n2,z/n2,i);
     var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
     var vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
@@ -292,3 +289,126 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
   //var edges = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
   //scene.add( edges );
 }
+
+function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
+	var elements = elementCount;
+
+	var geometry = new THREE.BufferGeometry();
+
+	var positions = new Float32Array( elements * 3 * 3 ); //array. position of each triangle x,y,z for each vertex
+	var normals = new Float32Array( elements * 3 * 3 ); //array. normals for each triangle's vertex
+  var colors = new Float32Array( elements * 3 * 3 ); //array. the same for the color
+	var color = new THREE.Color();
+
+	var n = 2000, n2 = n/2;	// elements spread in the cube
+	var d = elementSize, d2 = d/2;	// individual triangle size
+  var rad = d - d2;
+
+	var pA = new THREE.Vector3();
+	var pB = new THREE.Vector3();
+	var pC = new THREE.Vector3();
+
+	var cb = new THREE.Vector3();
+	var ab = new THREE.Vector3();
+
+	for ( var i = 0, c = 0 ; i < positions.length; i += 9, c++) {
+    var obj_i = Math.round(i/9);
+		// positions
+    // center used to begin to calculate a random triangle
+    var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[obj_i] * n2);
+    var y = typeof listX === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
+    var z = typeof listX === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
+   
+    // the vertexs of the polyhedron 
+    var polyVertex = [];
+    // Faces should always be pair
+    var ang = Math.PI*2/3;
+    for ( var v = 0; v < 2; v++) {
+      var angle =  (ang*v);// * Math.PI / 180;
+      polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
+      polyVertex.push(y);
+      polyVertex.push(z + Math.sin(angle) * rad/2);
+    }
+
+    angle =  0 * Math.PI / 180;
+    polyVertex.push(x);
+    polyVertex.push(y + Math.cos(angle) * rad/2);
+    polyVertex.push(z);
+
+		positions[ i ]     = polyVertex[0];
+		positions[ i + 1 ] = polyVertex[1];
+		positions[ i + 2 ] = polyVertex[2];
+
+		positions[ i + 3 ] = polyVertex[3];
+		positions[ i + 4 ] = polyVertex[4];
+		positions[ i + 5 ] = polyVertex[5];
+
+		positions[ i + 6 ] = polyVertex[6];
+		positions[ i + 7 ] = polyVertex[7];
+		positions[ i + 8 ] = polyVertex[8];
+
+		// flat face normals
+
+		pA.set( polyVertex[0], polyVertex[1], polyVertex[2] );
+		pB.set( polyVertex[3], polyVertex[4], polyVertex[5] );
+		pC.set( polyVertex[6], polyVertex[7], polyVertex[8] );
+
+		cb.subVectors( pC, pB );
+		ab.subVectors( pA, pB );
+		cb.cross( ab );
+
+		cb.normalize();
+
+		var nx = cb.x;
+		var ny = cb.y;
+		var nz = cb.z;
+
+		normals[ i ]     = nx;
+		normals[ i + 1 ] = ny;
+		normals[ i + 2 ] = nz;
+
+		normals[ i + 3 ] = nx;
+		normals[ i + 4 ] = ny;
+		normals[ i + 5 ] = nz;
+
+		normals[ i + 6 ] = nx;
+		normals[ i + 7 ] = ny;
+		normals[ i + 8 ] = nz;
+
+		// colors
+
+    var vx = expColorR(x/n2,y/n2,z/n2,i);
+    var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
+    var vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
+    
+    color.setRGB( vx, vy, vz );
+    // fill the vertex colors r,g,b 
+		colors[ i ]     = color.r;
+		colors[ i + 1 ] = color.g;
+		colors[ i + 2 ] = color.b;
+
+		colors[ i + 3 ] = color.r;
+		colors[ i + 4 ] = color.g;
+		colors[ i + 5 ] = color.b;
+
+		colors[ i + 6 ] = color.r;
+		colors[ i + 7 ] = color.g;
+		colors[ i + 8 ] = color.b;
+
+	}
+  // itemSize = 3 because there are 3 values (components) per vertex
+	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+	geometry.addAttribute( 'normal', new THREE.BufferAttribute( normals, 3 ) );
+	geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+  //	geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+
+  var material = new THREE.MeshBasicMaterial( {
+      color: 0xaaaaaa,  vertexColors: THREE.VertexColors, side: THREE.DoubleSide
+	} );
+
+	mesh = new THREE.Mesh( geometry, material );
+	scene.add( mesh );
+}
+

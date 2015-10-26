@@ -56,15 +56,17 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   scene.add(edges);
   
   //Create the scatter points! | IF THE ELEMENT GEOMETRY CHANGE, IT SHOULD CHANGE THE faceNumb TOO;
-  faceNumb = 6;
+  faceNumb = 4;
   if(typeof listX !== 'undefined') {
     if (geometryType == 0) addTriangleShape( elementCount, elementSize, listX, listY, listZ);
-    else addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
+    else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
+    else if (geometryType == 2) addPyramidMesh( elementCount, elementSize, listX, listY, listZ);
     //addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize, listX, listY, listZ );
   } else {
     if (geometryType == 0) addTriangleShape( elementCount, elementSize);
-    else addPolyhedronMesh( elementCount, elementSize, faceNumb);
+    else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb);
+    else if (geometryType == 2) addPyramidMesh( elementCount, elementSize); 
     //addPolyhedronMesh( elementCount, elementSize, faceNumb);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize );
   }

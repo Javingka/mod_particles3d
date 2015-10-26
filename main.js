@@ -24,7 +24,7 @@ function onMessageReceived( event ){
       console.log("lists: ",listX, listY, listZ);
 
       //type of geometryElement
-      var geometryType = typeof event.data[0][6] !== 'undefined'?event.data[0][6]:0; // new mo.NumberList();
+      var geometryType = typeof event.data[0][6] !== 'undefined'?event.data[0][6]:2; // new mo.NumberList();
       console.log("geometry type: ", geometryType );
 
 /*      if(Object.prototype.toString.call( event.data[0][5] ) === '[object Array]') {

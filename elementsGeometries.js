@@ -460,12 +460,12 @@ function addPyramidMesh( elementCount, elementSize, listX, listY, listZ  ){
   
     angle =  0 * Math.PI / 180;
     polyVertex.push(x);
-    polyVertex.push(y - Math.cos(angle) * rad);
+    polyVertex.push(y - Math.cos(angle) * rad/2);
     polyVertex.push(z);
 
     angle =  0 * Math.PI / 180;
     polyVertex.push(x);
-    polyVertex.push(y + Math.cos(angle) * rad);
+    polyVertex.push(y + Math.cos(angle) * rad/2);
     polyVertex.push(z);
 
     /* Setting the positions of each vertex

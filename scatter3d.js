@@ -4,7 +4,7 @@ var container;// DOM canvas to draw
 var stats; // fps stats
 var camera, scene, renderer;
 var raycaster, mouse;
-var mesh, line;
+var mesh, line, pyMesh ;
 var defaultElementColor;
 
 var controlsParam = [];
@@ -113,11 +113,12 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
 function animateScatter() {
 	requestAnimationFrame( animateScatter );
 
-  raycasterIntersect();
+ 	controls.update()
+  // evaluate the raycasterIntersect only if doesn't exist any interaction with camera
+  if ( controls.getState() == -1) raycasterIntersect();
 	renderer.render( scene, camera );
 
 	stats.update();
-	controls.update();
   controlsParam[0] = controls.getPos(); 
   controlsParam[1] = controls.getCenter(); 
 }

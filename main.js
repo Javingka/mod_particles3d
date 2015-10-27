@@ -68,6 +68,13 @@ function onDocumentMouseMove( event ) {
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }
 
-window.addEventListener( "message", onMessageReceived, false);
 
+
+    // Register to the 'message' event to get the previous function called
+    window.addEventListener( "message", onMessageReceived, false);
+
+    // A simple function to send messages to the parent window
+    function sendMessageToParent( message ){
+        parent.postMessage( message, '*' );
+    }
  // sendMessageToParent = function( id ){ { data:[ id ] } };

@@ -3,28 +3,28 @@ var expColorG;// = new Function('x,y,z,n', 'return  ( y / n ) + 0.5;');
 var expColorB;// = new Function('x,y,z,n', 'return  ( z / n ) + 0.5;');
 
 function onMessageReceived( event ){
-    console.log( "onMessageReceived, event.data:", event.data );
 
-    if (typeof event !== 'undefined') {
+    if (typeof event !== 'undefined' && typeof event.data[1] !== 'undefined') {
+      console.log( "onMessageReceived, event.data:", event.data );
       //the particle sizes
-      var nodeSize = event.data[0][1]; // 4 - 10 are good sizes to large elements
+      var nodeSize = event.data[1]; // 4 - 10 are good sizes to large elements
 
       //the particle colors
-      var expCx = event.data[0][2][0];
-      var expCy = event.data[0][2][1];
-      var expCz = event.data[0][2][2];
+      var expCx = event.data[2][0];
+      var expCy = event.data[2][1];
+      var expCz = event.data[2][2];
       expColorR = new Function('x,y,z,n', 'return '+ expCx );
       expColorG = new Function('x,y,z,n', 'return '+ expCy );
       expColorB = new Function('x,y,z,n', 'return '+ expCz );
 
      //fetch the particle positions
-      var listX = typeof event.data[0][3] !== 'undefined'?event.data[0][3]:[]; // new mo.NumberList();
-      var listY = typeof event.data[0][4] !== 'undefined'?event.data[0][4]:[]; //new mo.NumberList();
-      var listZ = typeof event.data[0][5] !== 'undefined'?event.data[0][5]:[]; //new mo.NumberList();
+      var listX = typeof event.data[3] !== 'undefined'?event.data[3]:[]; // new mo.NumberList();
+      var listY = typeof event.data[4] !== 'undefined'?event.data[4]:[]; //new mo.NumberList();
+      var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //new mo.NumberList();
       console.log("lists: ",listX, listY, listZ);
 
       //type of geometryElement
-      var geometryType = typeof event.data[0][6] !== 'undefined'?event.data[0][6]:2; // new mo.NumberList();
+      var geometryType = typeof event.data[6] !== 'undefined'?event.data[6]:2; // new mo.NumberList();
       console.log("geometry type: ", geometryType );
 
 /*      if(Object.prototype.toString.call( event.data[0][5] ) === '[object Array]') {
@@ -70,11 +70,10 @@ function onDocumentMouseMove( event ) {
 
 
 
-    // Register to the 'message' event to get the previous function called
-    window.addEventListener( "message", onMessageReceived, false);
+// Register to the 'message' event to get the previous function called
+window.addEventListener( "message", onMessageReceived, false);
 
-    // A simple function to send messages to the parent window
-    function sendMessageToParent( message ){
-        parent.postMessage( message, '*' );
-    }
- // sendMessageToParent = function( id ){ { data:[ id ] } };
+// A simple function to send messages to the parent window
+function sendMessageToParent( message ){
+  parent.postMessage( message, '*' );
+}

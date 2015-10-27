@@ -3,9 +3,11 @@ var controls; // mouse navigation
 var container;// DOM canvas to draw 
 var stats; // fps stats
 var camera, scene, renderer;
-var raycaster, mouse;
+var raycaster;
 var mesh, line, pyMesh ;
 var defaultElementColor;
+
+var PointCld, pointCldMesh; // bufferGeometry and mesh
 
 var controlsParam = [];
 var faceNumb; //variable to set the number of each element's faces 
@@ -15,6 +17,7 @@ var newFaceSelected = false;
 var lastIndexMouse = -1;
 var lastIndexMouseCol = new THREE.Color();
 
+var	mouse = new THREE.Vector2();
 /**
  * Set a new scatter 3d 
  * @param {elementCount} how many elements will be rendered  
@@ -61,15 +64,26 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
     if (geometryType == 0) addTriangleShape( elementCount, elementSize, listX, listY, listZ);
     else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
     else if (geometryType == 2) addPyramidMesh( elementCount, elementSize, listX, listY, listZ);
+    else if (geometryType == 3) {
+      PointCld = new PointCloud( 2000, elementCount, elementSize, listX, listY, listZ);
+      pointCldMesh = PointCld.getMesh();
+      scene.add(pointCldMesh);
+    }
     //addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize, listX, listY, listZ );
   } else {
     if (geometryType == 0) addTriangleShape( elementCount, elementSize);
     else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb);
     else if (geometryType == 2) addPyramidMesh( elementCount, elementSize); 
+    else if (geometryType == 3) {
+      PointCld = new PointCloud( 2000, elementCount, elementSize);
+      pointCldMesh = PointCld.getMesh();
+      scene.add(pointCldMesh);
+    }
     //addPolyhedronMesh( elementCount, elementSize, faceNumb);
     //faceNumb = 1; addTriangleShape( elementCount, elementSize );
   }
+
 
 	// raycaster to detect user interactions with mouse position
   raycasterInit();
@@ -115,12 +129,49 @@ function animateScatter() {
 
  	controls.update()
   // evaluate the raycasterIntersect only if doesn't exist any interaction with camera
-  if ( controls.getState() == -1) raycasterIntersect();
+  if ( controls.getState() == -1) raycasterIntersect(mesh);
+  if ( controls.getState() == -1) {
+    //getScreenVector
+  }
 	renderer.render( scene, camera );
+
+//  updateParticles();
 
 	stats.update();
   controlsParam[0] = controls.getPos(); 
   controlsParam[1] = controls.getCenter(); 
 }
 
+/*
+function updateParticles() {
+  var error=0.2;
+  var positions = pointCldMesh.geometry.attributes.position.array;
+  for(var v=0; v<PointCld.getCount(); v++){
+    var easing=0.2+(v%1000)/1000;
+    if(Math.abs(positions[ v * 3 + 0 ]-destination[ v * 3 + 0 ])>error)positions[ v * 3 + 0 ] += (destination[ v * 3 + 0 ]-positions[ v * 3 + 0 ])*.01;
+    else{
+      positions[ v * 3 + 0 ]=destination[ v * 3 + 0 ];
+    }
+    if(Math.abs(positions[ v * 3 + 1 ]-destination[ v * 3 + 1 ])>error)positions[ v * 3 + 1 ] += (destination[ v * 3 + 1 ]-positions[ v * 3 + 1 ])*.01;
+    else{
+      positions[ v * 3 + 1 ]=destination[ v * 3 + 1 ];
+    }
+    if(Math.abs(positions[ v * 3 + 2 ]-destination[ v * 3 + 2 ])>error)positions[ v * 3 + 2 ] += (destination[ v * 3 + 2 ]-positions[ v * 3 + 2 ])*.01;
+    else{
+     positions[ v * 3 + 2 ]=destination[ v * 3 + 2 ];
+    }
+  //              positions[ v * 3 + 0 ]=destination[ v * 3 + 0 ];
+  //              positions[ v * 3 + 1 ]=destination[ v * 3 + 1 ];
+  //              positions[ v * 3 + 2 ]=destination[ v * 3 + 2 ];
+  }
+  pointCldMesh.geometry.attributes.position.needsUpdate = true;
+}*/
+function getScreenVector(x, y, z, camera, width, height) {
+  var p = new THREE.Vector3(x, y, z);
+  var vector = p.project(camera);
 
+  vector.x = (vector.x + 1) / 2 * width;
+  vector.y = -(vector.y - 1) / 2 * height;
+		
+  return vector;
+}

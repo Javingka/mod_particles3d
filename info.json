@@ -1,0 +1,65 @@
+{
+	"name":"Squarify",
+	"description":"receives a numberList and visualizes it using the squarify algorithm (a on elevel treemap), that covers the surface with rectangles, each rectangle proprotional in area to each number respectively.",
+	"tags":"draw,area",
+	"familiy":"basic",
+	"authors":"Santiago Ortiz",
+	"version":"0.1",
+	"thumbnail":"",
+	"params":[
+		{
+			"type":"NumberList",
+			"name":"weights",
+			"description":"weights",
+			"optional":false
+		},
+		{
+			"type":"StringList",
+			"name":"stringList",
+			"description":"strings",
+			"optional":true
+		},
+		{
+			"type":"StringList",
+			"name":"secondaryStringList",
+			"description":"alternative texts (showed on rollover)",
+			"optional":true
+		},
+		{
+			"type":"ColorList",
+			"name":"colors",
+			"description":"colors",
+			"optional":true
+		},
+		{
+			"type":"String",
+			"name":"textColor",
+			"description":"color of texts",
+			"optional":true
+		},
+		{
+			"type":"List",
+			"name":"images",
+			"description":"list of images",
+			"optional":true
+		},
+		{
+			"type":"Number",
+			"name":"margin",
+			"description":"margin (in pixels) between rectangles",
+			"optional":true
+		},
+		{
+			"type":"Number",
+			"name":"proportion",
+			"description":"horizontal proprtion, if bigger than 1 rectangles will tend to be wider than taller",
+			"optional":true
+		},
+		{
+			"type":"Number",
+			"name":"externalSelectedIndex",
+			"description":"index of external selected element",
+			"optional":true
+		}
+	]
+}

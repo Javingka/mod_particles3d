@@ -20,13 +20,14 @@ function onMessageReceived( event ){
      //fetch the particle positions
       var listX = typeof event.data[3] !== 'undefined'?event.data[3]:[]; // new mo.NumberList();
       var listY = typeof event.data[4] !== 'undefined'?event.data[4]:[]; //new mo.NumberList();
-      var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //new mo.NumberList();
+      var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //inverted
       console.log("lists: ",listX, listY, listZ);
 
       //type of geometryElement
-      var geometryType = typeof event.data[6] !== 'undefined'?event.data[6]:0; // new mo.NumberList();
+      var geometryType = typeof event.data[6] !== 'undefined'?event.data[6]:1; // new mo.NumberList();
       console.log("geometry type: ", geometryType );
 
+      
 /*      if(Object.prototype.toString.call( event.data[0][5] ) === '[object Array]') {
         console.log( "color array" );
         var colorArr = event.data[0][5]; //get the color list

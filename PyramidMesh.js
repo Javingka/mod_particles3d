@@ -37,6 +37,7 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
     var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[obj_i] * n2);
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
+    z *= -1;
     //  i; //the pyramid vertexs 
     var pVertex = [];
 
@@ -140,7 +141,6 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
 		  normals[i + (9*f) + 8 ] = nz;
     }
 
-  
 		// colors
     var vx = expColorR(x/n2,y/n2,z/n2,i);
     var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
@@ -169,7 +169,6 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
 	} );
 	this.pyramidMesh = new THREE.Mesh( this.geometry, material );
 };
-
 
 PyramidMesh.prototype.raycasterSetup = function(){
   // create a geometry to draw a white line over the face intersected
@@ -225,12 +224,12 @@ PyramidMesh.prototype.raycasterIntersect = function( m, faceNumb ){
     // the result is going to be a float number. the integer part of that number is the element ID.
     var indexElementRollover =  Math.floor( intersect.index/3 / faceNumb );
 
-    if (intersect.index != lastIndexMouse) { // new over element 
-      newFaceSelected = true;
-      lastIndexMouse = intersect.index;
+    if (indexElementRollover != lastIndexMouse) { // new over element 
+      newElementSelected = true;
+      lastIndexMouse = Math.floor( intersect.index/3 / faceNumb );
       sendMessageToParent( [indexElementRollover] );
       console.log(indexElementRollover);
- //     sendMessageToParent( { message:'ok', numericProperty:lastIndexMouse, arrayProperty:[ lastIndexMouse ] } );
+  //     sendMessageToParent( { message:'ok', numericProperty:lastIndexMouse, arrayProperty:[ lastIndexMouse ] } );
     } 
     
    
@@ -258,11 +257,11 @@ PyramidMesh.prototype.raycasterIntersect = function( m, faceNumb ){
 		this.line.visible = true;
 	} else {
     // To detect when the mouse leave an intersected face and has no other consecutive intersect detection.
-    if (newFaceSelected )  {
-      newFaceSelected  = false;
+    if (newElementSelected )  {
+      newElementSelected = false;
       lastIndexMouse = -1;
-       sendMessageToParent( [lastIndexMouse] );
- //     sendMessageToParent( { message:'ok', numericProperty:lastIndexMouse, arrayProperty:[ lastIndexMouse ] } );
+      sendMessageToParent( [lastIndexMouse] );
+      console.log(lastIndexMouse);
     } 
 		this.line.visible = false;
     this.pyMesh.visible = false; 

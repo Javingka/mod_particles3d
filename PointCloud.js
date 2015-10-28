@@ -20,10 +20,11 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
     var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[i] * n2);
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[i] * n2); //Math.random() * n - n2;
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[i] * n2); //Math.random() * n - n2;
+    z *= -1;
 
-    positions[ i*3 + 0 ] = 1;//x;
-    positions[ i*3 + 1 ] = 1;// y;
-    positions[ i*3 + 2 ] = 1;//z;
+    positions[ i*3 + 0 ] = x;//1;//x;
+    positions[ i*3 + 1 ] = y;//1;// y;
+    positions[ i*3 + 2 ] = z;//1;//z;
     destination[ i*3 + 0 ] = x;
     destination[ i*3 + 1 ] = y;
     destination[ i*3 + 2 ] = z;
@@ -34,7 +35,7 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
     colors[ i*3 + 0] = vx;
   	colors[ i*3 + 1] = vy;
   	colors[ i*3 + 2] = vz;
-  	sizes[i]=3;
+  	sizes[i]=d;
   }
   
   this.geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3) );
@@ -43,10 +44,34 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
 
   this.geometry.computeBoundingBox();
   //this.geometry.computeBoundingSphere();
-  var material = new THREE.PointsMaterial( { size: 15, vertexColors: THREE.VertexColors } );
+  var material = new THREE.PointsMaterial( { size: d, vertexColors: THREE.VertexColors } );
 
   this.pointCloud = new THREE.Points( this.geometry, material );
   this.pointCloud.dynamic=true;
+};
+PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
+	raycaster.setFromCamera( mouse, camera );
+
+	var intersections = raycaster.intersectObject( m );
+//	var intersects = raycaster.intersectObject( m );
+	if ( intersections.length > 0 ) {
+		var intersect = intersections[ 0 ]; //the first face intersecting the line between the camera center and the mouse point
+
+    if (intersect.index != lastIndexMouse) { // new over element 
+      newElementSelected = true;
+      lastIndexMouse = intersect.index;
+      sendMessageToParent( [lastIndexMouse] );
+      console.log(lastIndexMouse);  
+    }
+  } else {
+    if (newElementSelected )  {
+      newElementSelected = false;
+      lastIndexMouse = -1;
+      sendMessageToParent( [lastIndexMouse] );
+      console.log(lastIndexMouse);  
+    } 
+  }
+
 };
 
 PointCloud.prototype.getMesh = function(){

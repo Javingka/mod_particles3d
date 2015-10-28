@@ -14,11 +14,12 @@ var actualCloud, actualMesh;
 var controlsParam = [];
 
 //variable to store the selected item id and color
-var newFaceSelected = false;
+var newElementSelected = false;
 var lastIndexMouse = -1;
 var lastIndexMouseCol = new THREE.Color();
 
 var	mouse = new THREE.Vector2();
+var externalSizeRange;
 /**
  * Set a new scatter 3d 
  * @param {elementCount} how many elements will be rendered  
@@ -30,18 +31,21 @@ var	mouse = new THREE.Vector2();
  */
 function initScatter( elementCount, elementSize, geometryType, listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
-  
+ // elementSize= geometryType==0? elementSize:elementSize*0.1;  
+  console.log("external cube size: " + externalSizeRange); 
+
+  externalSizeRange = geometryType==0? 200:200;  
 
   //create a camera, and set the position according the last camera visualization positions if existed
-  camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, .1, 15000 );
+  camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, .1, 15000);
   if(typeof controls !== 'undefined') {
     console.log("loading camera position");
     camera.position.x = controlsParam[0].x ; 
     camera.position.y = controlsParam[0].y ; 
-    camera.position.z = controlsParam[0].z ; 
+    camera.position.z = controlsParam[0].z; 
 
   } else {
-    camera.position.z = 4000;
+    camera.position.z = externalSizeRange*2;
   }
   if(typeof actualMesh !== 'undefined') {
     console.log('removing old mesh');
@@ -50,8 +54,9 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   //create the scene to render
   scene = new THREE.Scene();
 
+  
   //External cube used to draw the vertices as white lines
-  var geometry = new THREE.BoxGeometry( 2000,2000,2000 );
+  var geometry = new THREE.BoxGeometry( externalSizeRange,externalSizeRange,externalSizeRange );
   var material = new THREE.MeshBasicMaterial( { color: 0xffffff , opacity: 0.0, transparent: true, visible:false} );
   var cube = new THREE.Mesh( geometry, material );
   var edges = new THREE.EdgesHelper(cube, 0xffffff );
@@ -59,30 +64,33 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   scene.add(cube);
   scene.add(edges);
   
-  //Create the scatter points! 
-  if(typeof listX !== 'undefined') {
-    if (geometryType == 0) {
-      actualCloud  = new PyramidMesh(2000, elementCount, elementSize, listX, listY, listZ);
-      actualCloud.raycasterSetup();
-    }
-    else if (geometryType == 1) {
-      actualCloud = new PointCloud( 2000, elementCount, elementSize, listX, listY, listZ);
-    }
-  } else {
-    if (geometryType == 0) {
-      actualCloud = new PyramidMesh(2000, elementCount, elementSize);
-      actualCloud.raycasterSetup();
-    }
-    else if (geometryType == 1) {
-      actualCloud = new PointCloud( 2000, elementCount, elementSize);
-    }
-  }
-  actualMesh = actualCloud.getMesh();
-  scene.add(actualMesh);
-
 	// raycaster to detect user interactions with mouse position
   // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
 	raycaster = new THREE.Raycaster();
+  var threshold = .5;
+  raycaster.params.Points.threshold = threshold;
+  //Create the scatter points! 
+  if(typeof listX !== 'undefined') {
+    if (geometryType == 0) {
+      actualCloud  = new PyramidMesh(externalSizeRange, elementCount, elementSize, listX, listY, listZ);
+      actualCloud.raycasterSetup();
+    }
+    else if (geometryType == 1) {
+      actualCloud = new PointCloud( externalSizeRange, elementCount, elementSize, listX, listY, listZ);
+    }
+  } else {
+    if (geometryType == 0) {
+      actualCloud = new PyramidMesh(externalSizeRange, elementCount, elementSize);
+      actualCloud.raycasterSetup();
+    }
+    else if (geometryType == 1) {
+      actualCloud = new PointCloud( externalSizeRange, elementCount, elementSize);
+    }
+  }
+  actualMesh = actualCloud.getMesh();
+//  actualMesh.scale.set( 10,10,10 );
+  scene.add(actualMesh);
+
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );
 	renderer.setPixelRatio( window.devicePixelRatio );
@@ -107,13 +115,6 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   }
 
   //set the starts parameters and eliminte the last one if existed.
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
-  if ($('#stats').length > 0) {
-    $('#stats').remove();
-  }
-  container.appendChild( stats.domElement );
 
 	//
 	window.addEventListener( 'resize', onWindowResize, false );
@@ -133,7 +134,7 @@ function animateScatter() {
 
 //  updateParticles();
 
-	stats.update();
+//	stats.update();
   controlsParam[0] = controls.getPos(); 
   controlsParam[1] = controls.getCenter(); 
 }
@@ -170,4 +171,14 @@ function getScreenVector(x, y, z, camera, width, height) {
   vector.y = -(vector.y - 1) / 2 * height;
 		
   return vector;
+}
+
+function setStats() {
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+  if ($('#stats').length > 0) {
+    $('#stats').remove();
+  }
+  container.appendChild( stats.domElement );
 }

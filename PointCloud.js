@@ -1,6 +1,7 @@
 var destination = [];
 function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ ) {
   this.count = count;  
+  this.faces = 1;
   
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
 	var d = elementSize, d2 = d/2;
@@ -40,7 +41,8 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
   this.geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3) );
   this.geometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1) );
 
-  this.geometry.computeBoundingSphere();
+  this.geometry.computeBoundingBox();
+  //this.geometry.computeBoundingSphere();
   var material = new THREE.PointsMaterial( { size: 15, vertexColors: THREE.VertexColors } );
 
   this.pointCloud = new THREE.Points( this.geometry, material );
@@ -53,6 +55,8 @@ PointCloud.prototype.getMesh = function(){
 PointCloud.prototype.getCount = function() {
   return this.count;
 };
-
+PointCloud.prototype.getFacesNumber = function() {
+  return this.faces;
+};
 
 

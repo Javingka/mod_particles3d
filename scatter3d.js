@@ -4,13 +4,14 @@ var container;// DOM canvas to draw
 var stats; // fps stats
 var camera, scene, renderer;
 var raycaster;
-var mesh, line, pyMesh ;
+//var mesh, line, pyMesh ;
 var defaultElementColor;
 
-var PointCld, pointCldMesh; // bufferGeometry and mesh
+var pyramidCloud;
+var pointCloud; // bufferGeometry and mesh
+var actualCloud, actualMesh;
 
 var controlsParam = [];
-var faceNumb; //variable to set the number of each element's faces 
 
 //variable to store the selected item id and color
 var newFaceSelected = false;
@@ -42,9 +43,9 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   } else {
     camera.position.z = 4000;
   }
-  if(typeof mesh !== 'undefined') {
+  if(typeof actualMesh !== 'undefined') {
     console.log('removing old mesh');
-    scene.remove( mesh );
+    scene.remove( actualMesh);
   }
   //create the scene to render
   scene = new THREE.Scene();
@@ -58,35 +59,30 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   scene.add(cube);
   scene.add(edges);
   
-  //Create the scatter points! | IF THE ELEMENT GEOMETRY CHANGE, IT SHOULD CHANGE THE faceNumb TOO;
-  faceNumb = 4;
+  //Create the scatter points! 
   if(typeof listX !== 'undefined') {
-    if (geometryType == 0) addTriangleShape( elementCount, elementSize, listX, listY, listZ);
-    else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
-    else if (geometryType == 2) addPyramidMesh( elementCount, elementSize, listX, listY, listZ);
-    else if (geometryType == 3) {
-      PointCld = new PointCloud( 2000, elementCount, elementSize, listX, listY, listZ);
-      pointCldMesh = PointCld.getMesh();
-      scene.add(pointCldMesh);
+    if (geometryType == 0) {
+      actualCloud  = new PyramidMesh(2000, elementCount, elementSize, listX, listY, listZ);
+      actualCloud.raycasterSetup();
     }
-    //addPolyhedronMesh( elementCount, elementSize, faceNumb, listX, listY, listZ);
-    //faceNumb = 1; addTriangleShape( elementCount, elementSize, listX, listY, listZ );
+    else if (geometryType == 1) {
+      actualCloud = new PointCloud( 2000, elementCount, elementSize, listX, listY, listZ);
+    }
   } else {
-    if (geometryType == 0) addTriangleShape( elementCount, elementSize);
-    else if (geometryType == 1) addPolyhedronMesh( elementCount, elementSize, faceNumb);
-    else if (geometryType == 2) addPyramidMesh( elementCount, elementSize); 
-    else if (geometryType == 3) {
-      PointCld = new PointCloud( 2000, elementCount, elementSize);
-      pointCldMesh = PointCld.getMesh();
-      scene.add(pointCldMesh);
+    if (geometryType == 0) {
+      actualCloud = new PyramidMesh(2000, elementCount, elementSize);
+      actualCloud.raycasterSetup();
     }
-    //addPolyhedronMesh( elementCount, elementSize, faceNumb);
-    //faceNumb = 1; addTriangleShape( elementCount, elementSize );
+    else if (geometryType == 1) {
+      actualCloud = new PointCloud( 2000, elementCount, elementSize);
+    }
   }
-
+  actualMesh = actualCloud.getMesh();
+  scene.add(actualMesh);
 
 	// raycaster to detect user interactions with mouse position
-  raycasterInit();
+  // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
+	raycaster = new THREE.Raycaster();
 
 	renderer = new THREE.WebGLRenderer( { antialias: false } );
 	renderer.setPixelRatio( window.devicePixelRatio );
@@ -129,7 +125,7 @@ function animateScatter() {
 
  	controls.update()
   // evaluate the raycasterIntersect only if doesn't exist any interaction with camera
-  if ( controls.getState() == -1) raycasterIntersect(mesh);
+  if ( controls.getState() == -1) actualCloud.raycasterIntersect(actualMesh, actualCloud.getFacesNumber());
   if ( controls.getState() == -1) {
     //getScreenVector
   }

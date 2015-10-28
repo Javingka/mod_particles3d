@@ -1,6 +1,4 @@
 function raycasterInit(){
-  // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
-	raycaster = new THREE.Raycaster();
 
   // create a geometry to draw a white line over the face intersected
 	var geometry = new THREE.BufferGeometry();
@@ -36,7 +34,7 @@ function raycasterInit(){
 	scene.add( pyMesh );
 }
 
-function raycasterIntersect( m ) {
+function raycasterIntersect( m, faceNumb ) {
 	raycaster.setFromCamera( mouse, camera );
 
 	var intersects = raycaster.intersectObject( m );
@@ -46,7 +44,7 @@ function raycasterIntersect( m ) {
     var obj = intersect.object;
     //get the position attribute of each geometry. an array wich x,y,z of each line's and  mesh's vertex
 		var linePosition = line.geometry.attributes.position;
-		var meshPosition = mesh.geometry.attributes.position;
+		var meshPosition = actualMesh.geometry.attributes.position;
     var meshOveredPos = pyMesh.geometry.attributes.position;
     
     // To get one ID by element. 
@@ -58,7 +56,8 @@ function raycasterIntersect( m ) {
     if (intersect.index != lastIndexMouse) { // new over element 
       newFaceSelected = true;
       lastIndexMouse = intersect.index;
-      sendMessageToParent( [lastIndexMouse] );
+      sendMessageToParent( [indexElementRollover] );
+      console.log(indexElementRollover);
  //     sendMessageToParent( { message:'ok', numericProperty:lastIndexMouse, arrayProperty:[ lastIndexMouse ] } );
     } 
     
@@ -80,10 +79,10 @@ function raycasterIntersect( m ) {
     //mesh has to be warned about the changes to update the graphics.
 		//mesh.updateMatrix();
     
-    pyMesh.geometry.applyMatrix( mesh.matrix );
+    pyMesh.geometry.applyMatrix( actualMesh.matrix );
     pyMesh.visible = true; 
     //update line matrix according the mesh
-		line.geometry.applyMatrix( mesh.matrix );
+		line.geometry.applyMatrix( actualMesh.matrix );
 		line.visible = true;
 	} else {
     // To detect when the mouse leave an intersected face and has no other consecutive intersect detection.
@@ -97,6 +96,7 @@ function raycasterIntersect( m ) {
     pyMesh.visible = false; 
 	}
 }
+
 
 /* From here to the bottom is deprecated, it used to much process. but is a good example of how to get and set the color from a buffer geometry element
  * */

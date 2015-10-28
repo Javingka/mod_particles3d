@@ -99,7 +99,6 @@ function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
 		colors[ i + 6 ] = color.r;
 		colors[ i + 7 ] = color.g;
 		colors[ i + 8 ] = color.b;
-
 	}
   // itemSize = 3 because there are 3 values (components) per vertex
 	geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
@@ -159,26 +158,26 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
     // the vertexs of the polyhedron 
-    var polyVertex = [];
+    var pVertex = [];
 
     // Faces should always be pair
-    var ang = Math.PI*2/(faces/2);
+    var ang = (Math.PI*2)/(faces/2);
     for ( var v = 0; v < (faces/2); v++) {
       var angle = (ang*v);// * Math.PI / 180;
-      polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
-      polyVertex.push(y);
-      polyVertex.push(z + Math.sin(angle) * rad/2);
+      pVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
+      pVertex.push(y);
+      pVertex.push(z + Math.sin(angle) * rad/2);
     } 
   
     angle =  0 * Math.PI / 180;
-    polyVertex.push(x);
-    polyVertex.push(y + Math.cos(angle) * rad);
-    polyVertex.push(z);
+    pVertex.push(x);
+    pVertex.push(y + Math.cos(angle) * rad);
+    pVertex.push(z);
 
     angle =  0 * Math.PI / 180;
-    polyVertex.push(x);
-    polyVertex.push(y - Math.cos(angle) * rad);
-    polyVertex.push(z);
+    pVertex.push(x);
+    pVertex.push(y - Math.cos(angle) * rad);
+    pVertex.push(z);
 
     /* Setting the positions of each vertex
      * position (i) selected by /the (f)ace/the vertex/the coordinate x,y and z 
@@ -189,51 +188,51 @@ function addPolyhedronMesh( elementCount, elementSize, faceNum, listX, listY, li
       // The order of the vertex determines the visible face of the triangle
       var indexY;
       if ( f < faces/2) {
-        indexY = polyVertex.length-3;
-        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+0)%cons];
-        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+1)%cons];
-        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+2)%cons];
+        indexY = pVertex.length-3;
+        positions[ i + (9*f) + 0 ] = pVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 1 ] = pVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 2 ] = pVertex[(f*3+2)%cons];
 
-        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+3)%cons];
-        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+4)%cons];
-        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+5)%cons];
+        positions[ i + (9*f) + 3 ] = pVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 4 ] = pVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 5 ] = pVertex[(f*3+5)%cons];
       }
       else {
-        indexY = polyVertex.length-6; 
-        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+0)%cons];
-        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+1)%cons];
-        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+2)%cons];
+        indexY = pVertex.length-6; 
+        positions[ i + (9*f) + 3 ] = pVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 4 ] = pVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 5 ] = pVertex[(f*3+2)%cons];
 
-        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+3)%cons];
-        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+4)%cons];
-        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+5)%cons];
+        positions[ i + (9*f) + 0 ] = pVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 1 ] = pVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 2 ] = pVertex[(f*3+5)%cons];
       }
 
-      positions[ i + (9*f) + 6 ] = polyVertex[indexY];
-      positions[ i + (9*f) + 7 ] = polyVertex[indexY+1];
-      positions[ i + (9*f) + 8 ] = polyVertex[indexY+2];
+      positions[ i + (9*f) + 6 ] = pVertex[indexY];
+      positions[ i + (9*f) + 7 ] = pVertex[indexY+1];
+      positions[ i + (9*f) + 8 ] = pVertex[indexY+2];
     }  
 
 		// flat face normals
     for ( var f = 0; f < faces; f++) { // face*3 =6
-      pA.set( polyVertex[(f*3)%cons] , 
-        polyVertex[(f*3+1)%cons],
-        polyVertex[(f*3+2)%cons]);// ax, ay, az );
-      pB.set( polyVertex[(f*3+3)%cons], 
-        polyVertex[(f*3+4)%cons],
-        polyVertex[(f*3+5)%cons]);// bx, by, bz );
+      pA.set( pVertex[(f*3)%cons] , 
+        pVertex[(f*3+1)%cons],
+        pVertex[(f*3+2)%cons]);// ax, ay, az );
+      pB.set( pVertex[(f*3+3)%cons], 
+        pVertex[(f*3+4)%cons],
+        pVertex[(f*3+5)%cons]);// bx, by, bz );
 
       var indexY;
       if ( f < faces/2) {
-        indexY = polyVertex.length-3;
-        pC.set(polyVertex[indexY],polyVertex[indexY+1],polyVertex[indexY+2]);// cx, cy, cz );
+        indexY = pVertex.length-3;
+        pC.set(pVertex[indexY],pVertex[indexY+1],pVertex[indexY+2]);// cx, cy, cz );
 		    cb.subVectors( pA, pC ); // Sets this vector to pC - pB.
 		    ab.subVectors( pB, pC );
 		    cb.cross( ab );
 		    cb.normalize();
       } else {
-        indexY = polyVertex.length-6; 
-        pC.set(polyVertex[indexY],polyVertex[indexY+1],polyVertex[indexY+2]);// cx, cy, cz );
+        indexY = pVertex.length-6; 
+        pC.set(pVertex[indexY],pVertex[indexY+1],pVertex[indexY+2]);// cx, cy, cz );
 		    cb.subVectors( pA, pC ); // Sets this vector to pC - pB.
 		    ab.subVectors( pA, pC );
 		    cb.cross( ab );
@@ -319,39 +318,39 @@ function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
     var y = typeof listX === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
     var z = typeof listX === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
     // the vertexs of the polyhedron 
-    var polyVertex = [];
+    var pVertex = [];
     // Faces should always be pair
     var ang = Math.PI*2/3;
 
     for ( var v = 0; v < 2; v++) {
       var angle =  (ang*v);// * Math.PI / 180;
-      polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
-      polyVertex.push(y);
-      polyVertex.push(z + Math.sin(angle) * rad/2);
+      pVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
+      pVertex.push(y);
+      pVertex.push(z + Math.sin(angle) * rad/2);
     }
 
     angle =  0 * Math.PI / 180;
-    polyVertex.push(x);
-    polyVertex.push(y + Math.cos(angle) * rad/2);
-    polyVertex.push(z);
+    pVertex.push(x);
+    pVertex.push(y + Math.cos(angle) * rad/2);
+    pVertex.push(z);
 
-		positions[ i ]     = polyVertex[0];
-		positions[ i + 1 ] = polyVertex[1];
-		positions[ i + 2 ] = polyVertex[2];
+		positions[ i ]     = pVertex[0];
+		positions[ i + 1 ] = pVertex[1];
+		positions[ i + 2 ] = pVertex[2];
 
-		positions[ i + 3 ] = polyVertex[3];
-		positions[ i + 4 ] = polyVertex[4];
-		positions[ i + 5 ] = polyVertex[5];
+		positions[ i + 3 ] = pVertex[3];
+		positions[ i + 4 ] = pVertex[4];
+		positions[ i + 5 ] = pVertex[5];
 
-		positions[ i + 6 ] = polyVertex[6];
-		positions[ i + 7 ] = polyVertex[7];
-		positions[ i + 8 ] = polyVertex[8];
+		positions[ i + 6 ] = pVertex[6];
+		positions[ i + 7 ] = pVertex[7];
+		positions[ i + 8 ] = pVertex[8];
 
 		// flat face normals
 
-		pA.set( polyVertex[0], polyVertex[1], polyVertex[2] );
-		pB.set( polyVertex[3], polyVertex[4], polyVertex[5] );
-		pC.set( polyVertex[6], polyVertex[7], polyVertex[8] );
+		pA.set( pVertex[0], pVertex[1], pVertex[2] );
+		pB.set( pVertex[3], pVertex[4], pVertex[5] );
+		pC.set( pVertex[6], pVertex[7], pVertex[8] );
 
 		cb.subVectors( pC, pB );
 		ab.subVectors( pA, pB );
@@ -412,9 +411,7 @@ function addTriangleShape( elementCount, elementSize, listX, listY, listZ ){
 }
 
 function addPyramidMesh( elementCount, elementSize, listX, listY, listZ  ){
-	var elements = elementCount;
-	var geometry = new THREE.BufferGeometry();
-
+	
   var faces = 4; //faceNum;// 6; // 6 é o minimo
   var totalFaceVertex = faces * 3;
   var totalData = totalFaceVertex  * 3; //x,y,z for each vertex
@@ -447,26 +444,26 @@ function addPyramidMesh( elementCount, elementSize, listX, listY, listZ  ){
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[obj_i] * n2); //Math.random() * n - n2;
     // the vertexs of the polyhedron 
-    var polyVertex = [];
+    var pVertex = [];
 
     // Faces should always be pair
     var ang = Math.PI*2/3;
     for ( var v = 0; v < 3; v++) {
       var angle = (ang*v);// * Math.PI / 180;
-      polyVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
-      polyVertex.push(y);
-      polyVertex.push(z + Math.sin(angle) * rad/2);
+      pVertex.push(x + Math.cos(angle) * rad/2); // rad/2 make a thiner polyhedron. looks better 
+      pVertex.push(y);
+      pVertex.push(z + Math.sin(angle) * rad/2);
     } 
   
     angle =  0 * Math.PI / 180;
-    polyVertex.push(x);
-    polyVertex.push(y - Math.cos(angle) * rad/2);
-    polyVertex.push(z);
+    pVertex.push(x);
+    pVertex.push(y - Math.cos(angle) * rad/2);
+    pVertex.push(z);
 
     angle =  0 * Math.PI / 180;
-    polyVertex.push(x);
-    polyVertex.push(y + Math.cos(angle) * rad/2);
-    polyVertex.push(z);
+    pVertex.push(x);
+    pVertex.push(y + Math.cos(angle) * rad/2);
+    pVertex.push(z);
 
     /* Setting the positions of each vertex
      * position (i) selected by /the (f)ace/the vertex/the coordinate x,y and z 
@@ -477,56 +474,56 @@ function addPyramidMesh( elementCount, elementSize, listX, listY, listZ  ){
       // The order of the vertex determines the visible face of the triangle
       var indexY;
       if ( f < 3) {
-        indexY = polyVertex.length-3;
-        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+0)%cons];
-        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+1)%cons];
-        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+2)%cons];
+        indexY = pVertex.length-3;
+        positions[ i + (9*f) + 0 ] = pVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 1 ] = pVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 2 ] = pVertex[(f*3+2)%cons];
 
-        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+3)%cons];
-        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+4)%cons];
-        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+5)%cons];
+        positions[ i + (9*f) + 3 ] = pVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 4 ] = pVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 5 ] = pVertex[(f*3+5)%cons];
 
-        positions[ i + (9*f) + 6 ] = polyVertex[indexY];
-        positions[ i + (9*f) + 7 ] = polyVertex[indexY+1];
-        positions[ i + (9*f) + 8 ] = polyVertex[indexY+2];
+        positions[ i + (9*f) + 6 ] = pVertex[indexY];
+        positions[ i + (9*f) + 7 ] = pVertex[indexY+1];
+        positions[ i + (9*f) + 8 ] = pVertex[indexY+2];
       }
       else {
-        indexY = polyVertex.length-6; 
-        positions[ i + (9*f) + 3 ] = polyVertex[(f*3+0)%cons];
-        positions[ i + (9*f) + 4 ] = polyVertex[(f*3+1)%cons];
-        positions[ i + (9*f) + 5 ] = polyVertex[(f*3+2)%cons];
+        indexY = pVertex.length-6; 
+        positions[ i + (9*f) + 3 ] = pVertex[(f*3+0)%cons];
+        positions[ i + (9*f) + 4 ] = pVertex[(f*3+1)%cons];
+        positions[ i + (9*f) + 5 ] = pVertex[(f*3+2)%cons];
 
-        positions[ i + (9*f) + 0 ] = polyVertex[(f*3+3)%cons];
-        positions[ i + (9*f) + 1 ] = polyVertex[(f*3+4)%cons];
-        positions[ i + (9*f) + 2 ] = polyVertex[(f*3+5)%cons];
+        positions[ i + (9*f) + 0 ] = pVertex[(f*3+3)%cons];
+        positions[ i + (9*f) + 1 ] = pVertex[(f*3+4)%cons];
+        positions[ i + (9*f) + 2 ] = pVertex[(f*3+5)%cons];
 
-        positions[ i + (9*f) + 6 ] = polyVertex[(f*3+6)%cons];
-        positions[ i + (9*f) + 7 ] = polyVertex[(f*3+7)%cons];
-        positions[ i + (9*f) + 8 ] = polyVertex[(f*3+8)%cons];
+        positions[ i + (9*f) + 6 ] = pVertex[(f*3+6)%cons];
+        positions[ i + (9*f) + 7 ] = pVertex[(f*3+7)%cons];
+        positions[ i + (9*f) + 8 ] = pVertex[(f*3+8)%cons];
       }
 
     }  
 
 		// flat face normals
     for ( var f = 0; f < faces; f++) { //  4faces
-      pA.set( polyVertex[(f*3)%cons] , 
-        polyVertex[(f*3+1)%cons],
-        polyVertex[(f*3+2)%cons]);// ax, ay, az );
-      pB.set( polyVertex[(f*3+3)%cons], 
-        polyVertex[(f*3+4)%cons],
-        polyVertex[(f*3+5)%cons]);// bx, by, bz );
+      pA.set( pVertex[(f*3)%cons] , 
+        pVertex[(f*3+1)%cons],
+        pVertex[(f*3+2)%cons]);// ax, ay, az );
+      pB.set( pVertex[(f*3+3)%cons], 
+        pVertex[(f*3+4)%cons],
+        pVertex[(f*3+5)%cons]);// bx, by, bz );
 
       var indexY;
       if ( f < 3) {
-        indexY = polyVertex.length-3;
-        pC.set(polyVertex[indexY],polyVertex[indexY+1],polyVertex[indexY+2]);// cx, cy, cz );
+        indexY = pVertex.length-3;
+        pC.set(pVertex[indexY],pVertex[indexY+1],pVertex[indexY+2]);// cx, cy, cz );
 		    cb.subVectors( pA, pC ); // Sets this vector to pC - pB.
 		    ab.subVectors( pB, pC );
 		    cb.cross( ab );
 		    cb.normalize();
       } else {
-        indexY = polyVertex.length-6; 
-        pC.set(polyVertex[indexY],polyVertex[indexY+1],polyVertex[indexY+2]);// cx, cy, cz );
+        indexY = pVertex.length-6; 
+        pC.set(pVertex[indexY],pVertex[indexY+1],pVertex[indexY+2]);// cx, cy, cz );
 		    cb.subVectors( pA, pC ); // Sets this vector to pC - pB.
 		    ab.subVectors( pA, pC );
 		    cb.cross( ab );

@@ -1,10 +1,10 @@
 var destination = [];
-function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ ) {
+function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   this.count = count;  
   this.faces = 1;
   
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
-	var d = elementSize, d2 = d/2;
+//	var d = elementSize, d2 = d/2;
 
   // custom attributes to be applied on buffer geomtry
   var positions = new Float32Array( count * 3 );
@@ -28,14 +28,39 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
     destination[ i*3 + 0 ] = x;
     destination[ i*3 + 1 ] = y;
     destination[ i*3 + 2 ] = z;
+     
 		// colors
-    var vx = expColorR(x/n2,y/n2,z/n2,i);
-    var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
-    var vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
-    colors[ i*3 + 0] = vx;
-  	colors[ i*3 + 1] = vy;
-  	colors[ i*3 + 2] = vz;
-  	sizes[i]=d;
+    var cr,cg,cb;
+    switch (colorSettingType) {
+    case 0:
+      cr = expColorR(x/n2,y/n2,z/n2,i);
+      cg = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
+      cb = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
+      break;
+    case 1:
+      cr = colorArray[i][0];
+      cg = colorArray[i][1];
+      cb = colorArray[i][2];
+      break;
+    case 2:
+      cr = colorDefault.r;
+      cg = colorDefault.g;
+      cb = colorDefault.b;
+      break;
+    }
+    colors[ i*3 + 0] = cr;
+  	colors[ i*3 + 1] = cg;
+  	colors[ i*3 + 2] = cb;
+
+    // sizes
+    switch(sizeSettingType){
+    case 0:
+  	  sizes[i]= sizeDefault;
+      break;
+    case 1:
+      sizes[i] = sizeDefault; //sizeArray[i];
+      break;
+    }
   }
   
   this.geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3) );
@@ -44,7 +69,7 @@ function PointCloud(externalSizeRange, count, elementSize, listX, listY, listZ )
 
   this.geometry.computeBoundingBox();
   //this.geometry.computeBoundingSphere();
-  var material = new THREE.PointsMaterial( { size: d, vertexColors: THREE.VertexColors } );
+  var material = new THREE.PointsMaterial( {size: sizeDefault, vertexColors: THREE.VertexColors, fog: false } );
 
   this.pointCloud = new THREE.Points( this.geometry, material );
   this.pointCloud.dynamic=true;

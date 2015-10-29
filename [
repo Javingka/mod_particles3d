@@ -27,14 +27,14 @@ function onMessageReceived( event ){
       if ( listX.length == listY.length && listY.length == listZ.length && listX.length > 0) {
         particleNumber = listX.length;
         workingPositionLists = true;
-        axisLabels[0] =  typeof listX.name === 'string'? listX.name : 'X';
-        axisLabels[1] =  typeof listY.name === 'string'? listY.name : 'Y';
-        axisLabels[2] =  typeof listZ.name === 'string'? listZ.name : 'Z';
+        axisLabels[0] = listX.name === 'string'? listX.name : 'X';
+        axisLabels[1] = listX.name === 'string'? listX.name : 'Y';
+        axisLabels[2] = listX.name === 'string'? listX.name : 'Z';
       } else {
         particleNumber = parseInt(event.data[0]);
-        axisLabels[0] =  typeof listX.name === 'string'? listX.name : 'X';
-        axisLabels[1] =  typeof listY.name === 'string'? listY.name : 'Y';
-        axisLabels[2] =  typeof listZ.name === 'string'? listZ.name : 'Z';
+        axisLabels[0] = 'X';
+        axisLabels[1] = 'Y';
+        axisLabels[2] = 'Z';
       }
       console.log("Axis labels: ", axisLabels);
 

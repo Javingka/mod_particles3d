@@ -1,4 +1,4 @@
-function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
+function PyramidMesh( externalSizeRange, count, listX, listY, listZ ) {
   this.meshDistRange = 2000;
   this.count = count;
   this.faces = 4;
@@ -16,7 +16,7 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
   this.geometry = new THREE.BufferGeometry();
 
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
-	var d = eSize, d2 = d/2;	// individual triangle size
+//	var d = eSize, d2 = d/2;	// individual triangle size
 
 	var pA = new THREE.Vector3();
 	var pB = new THREE.Vector3();
@@ -28,11 +28,22 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
 	var cb = new THREE.Vector3();
 	var ab = new THREE.Vector3();
 
-  var rad = d - d2;
+  var rad;// = d - d2;
   // loop to set the position, normal and color arrays we will pass to addAttribute for geometry object
 	for ( var i = 0 ; i < positions.length; i += this.totalData) {
 		// index of the element. 
     var obj_i = Math.round(i/this.totalData);
+
+    //defining the size
+    switch(sizeSettingType){
+    case 0:
+      rad = sizeDefault;
+      break;
+    case 1:
+      rad = sizeArray[obj_i];
+      break;
+    }
+
     // center 
     var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[obj_i] * n2);
     var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[obj_i] * n2); //Math.random() * n - n2;
@@ -142,10 +153,26 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
     }
 
 		// colors
-    var vx = expColorR(x/n2,y/n2,z/n2,i);
-    var vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
-    var vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
-    
+    var vx;// = expColorR(x/n2,y/n2,z/n2,i);
+    var vy;// = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
+    var vz;// = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
+    switch (colorSettingType) {
+    case 0:
+      vx = expColorR(x/n2,y/n2,z/n2,i);
+      vy = expColorG(x/n2,y/n2,z/n2,i); //( y / n ) + 0.5;
+      vz = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
+      break;
+    case 1:
+      vx = colorArray[obj_i][0];
+      vy = colorArray[obj_i][1];
+      vz = colorArray[obj_i][2];
+      break;
+    case 2:
+      vx = colorDefault.r;
+      vy = colorDefault.g;
+      vz = colorDefault.b;
+      break;
+    }
     //vx = x / (n+2);
     //color.setHSL(vx, 1.0, 0.5 );
     color.setRGB( vx, vy, vz );
@@ -165,7 +192,7 @@ function PyramidMesh( externalSizeRange, count, eSize, listX, listY, listZ ) {
   this.geometry.computeBoundingBox();
 
   var material = new THREE.MeshBasicMaterial( {
-     color: 0xaaaaaa,  vertexColors: THREE.VertexColors, transparent: false
+      color: 0xaaaaaa,  vertexColors: THREE.VertexColors, transparent: false, fog:false
 	} );
 	this.pyramidMesh = new THREE.Mesh( this.geometry, material );
 };

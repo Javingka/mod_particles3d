@@ -20,6 +20,7 @@ var lastIndexMouseCol = new THREE.Color();
 
 var	mouse = new THREE.Vector2();
 var externalSizeRange;
+
 /**
  * Set a new scatter 3d 
  * @param {elementCount} how many elements will be rendered  
@@ -29,10 +30,9 @@ var externalSizeRange;
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
  */
-function initScatter( elementCount, elementSize, geometryType, listX, listY, listZ  ) {
+function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
  // elementSize= geometryType==0? elementSize:elementSize*0.1;  
-  console.log("external cube size: " + externalSizeRange); 
 
   externalSizeRange = geometryType==0? 200:200;  
 
@@ -45,7 +45,7 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
     camera.position.z = controlsParam[0].z; 
 
   } else {
-    camera.position.z = externalSizeRange*2;
+    camera.position.z = externalSizeRange*2.8;
   }
   if(typeof actualMesh !== 'undefined') {
     console.log('removing old mesh');
@@ -53,42 +53,46 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
   }
   //create the scene to render
   scene = new THREE.Scene();
-
+  var near = 100;// camera.position.z - externalSizeRange * .8 ;
+  var far = near + externalSizeRange *4 ;//* .4;
+//  scene.fog = new THREE.Fog( 0x000000, near,far);
   
   //External cube used to draw the vertices as white lines
   var geometry = new THREE.BoxGeometry( externalSizeRange,externalSizeRange,externalSizeRange );
-  var material = new THREE.MeshBasicMaterial( { color: 0xffffff , opacity: 0.0, transparent: true, visible:false} );
+  var material = new THREE.MeshBasicMaterial( { color: 0xffffff , opacity: 0.0, transparent: true, visible:false, fog:false} );
   var cube = new THREE.Mesh( geometry, material );
   var edges = new THREE.EdgesHelper(cube, 0xffffff );
   edges.material.linewidth = 0.5;
+  edges.material.fog = false;
   scene.add(cube);
   scene.add(edges);
-  
+
 	// raycaster to detect user interactions with mouse position
   // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
 	raycaster = new THREE.Raycaster();
   var threshold = .5;
   raycaster.params.Points.threshold = threshold;
+  
   //Create the scatter points! 
   if(typeof listX !== 'undefined') {
     if (geometryType == 0) {
-      actualCloud  = new PyramidMesh(externalSizeRange, elementCount, elementSize, listX, listY, listZ);
+      actualCloud  = new PyramidMesh(externalSizeRange, elementCount, listX, listY, listZ);
       actualCloud.raycasterSetup();
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount, elementSize, listX, listY, listZ);
+      actualCloud = new PointCloud( externalSizeRange, elementCount, listX, listY, listZ);
     }
   } else {
     if (geometryType == 0) {
-      actualCloud = new PyramidMesh(externalSizeRange, elementCount, elementSize);
+      actualCloud = new PyramidMesh(externalSizeRange, elementCount );
       actualCloud.raycasterSetup();
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount, elementSize);
+      actualCloud = new PointCloud( externalSizeRange, elementCount );
     }
   }
   actualMesh = actualCloud.getMesh();
-//  actualMesh.scale.set( 10,10,10 );
+  //  actualMesh.scale.set( 10,10,10 );
   scene.add(actualMesh);
 
 
@@ -114,8 +118,7 @@ function initScatter( elementCount, elementSize, geometryType, listX, listY, lis
     controls.center.z = controlsParam[1].z ; 
   }
 
-  //set the starts parameters and eliminte the last one if existed.
-
+  settingAxisTexts();
 	//
 	window.addEventListener( 'resize', onWindowResize, false );
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
@@ -132,9 +135,10 @@ function animateScatter() {
   }
 	renderer.render( scene, camera );
 
-//  updateParticles();
+  //  updateParticles();
+  updateAxisText();
 
-//	stats.update();
+  //	stats.update();
   controlsParam[0] = controls.getPos(); 
   controlsParam[1] = controls.getCenter(); 
 }

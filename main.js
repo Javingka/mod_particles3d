@@ -3,14 +3,15 @@ var expColorR;// = new Function('x,y,z,n', 'return  ( x / n ) + 0.5;');
 var expColorG;// = new Function('x,y,z,n', 'return  ( y / n ) + 0.5;');
 var expColorB;// = new Function('x,y,z,n', 'return  ( z / n ) + 0.5;');
 var colorSettingType; // 0: with expressions | 1: as array | 2: one default color for all
-var colorArray; // to store three arrays with 
-var colorDefault; 
+var colorArray; // to store three arrays with
+var colorDefault;
 
 var sizeSettingType; // 0: only one size | 1: as array
 var sizeArray;
 var sizeDefault;
 var particleNumber;
 
+var onClick = false;
 var axisLabels=[];
 function onMessageReceived( event ){
 
@@ -40,7 +41,7 @@ function onMessageReceived( event ){
 
        //type of geometryElement
       var geometryType = typeof event.data[6] !== 'undefined'?event.data[6]:1; // 0 → pyramid | 1 → square
-      console.log("geometry type: ", geometryType, " → ", (geometryType==0?"pyramids":"square") );     
+      console.log("geometry type: ", geometryType, " → ", (geometryType==0?"pyramids":"square") );
 
       //the particle sizes
       var incomingSize = event.data[1]; // 4 - 10 are good sizes to large elements
@@ -70,14 +71,14 @@ function onMessageReceived( event ){
         colorArray = event.data[2];
       } else {
         colorSettingType = 2; //the color is set by the array
-        colorDefault = new THREE.Color(1,1,1); 
+        colorDefault = new THREE.Color(1,1,1);
       }
 
       // Array with the sizes of each particle
  //     var listSize = typeof event.data[6] !== 'undefined'?event.data[6]:[]; //inverted
 
 
-      
+
       //if the lists have the same lenght and have more than 1 element. use the list to get the particles number
       if (workingPositionLists){
         initScatter( particleNumber , geometryType , listX, listY, listZ );
@@ -85,7 +86,8 @@ function onMessageReceived( event ){
       else {
         initScatter( particleNumber , geometryType ); } animateScatter();
     }
-}  
+
+}
 
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight;
@@ -98,7 +100,15 @@ function onDocumentMouseMove( event ) {
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 }
-
+// when the mouse moves, call the given function
+document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+function onDocumentMouseDown( event )
+{
+	// the following line would stop any other event handler from firing
+	// (such as the mouse's TrackballControls)
+	// event.preventDefault();
+  if ( lastIndexMouse != -1 ) onClick = true;
+}
 // Register to the 'message' event to get the previous function called
 window.addEventListener( "message", onMessageReceived, false);
 

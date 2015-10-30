@@ -2,7 +2,8 @@ var destination = [];
 function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   this.count = count;
   this.faces = 1;
-
+  this.clickStateParticles = [];
+  this.clickedParticles = [];
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
 //	var d = elementSize, d2 = d/2;
 
@@ -12,6 +13,11 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   destination = new Float32Array( count * 3 );
   var colors = new Float32Array( count * 3 );
   var sizes = new Float32Array( count );
+
+  // setting the clickeable particles list to know when each particle is selected or not
+  for ( var p = 0; p < count; p++) {
+    this.clickStateParticles[p] = false;
+  }
 
   this.geometry = new THREE.BufferGeometry();
 
@@ -85,6 +91,7 @@ PointCloud.prototype.raycasterSetup = function(){
 	var context = canvas.getContext('2d');
 	context.font = "Bold " + fontsize + "px " + fontface;
 
+  // CREATING THE SQUARE FOR THE OVERED PARTICLE
 	// text color
 	context.fillStyle = "rgba(255, 255, 255, 1.0)";
   context.lineWidth=.8;
@@ -94,7 +101,7 @@ PointCloud.prototype.raycasterSetup = function(){
   context.strokeText( "message", 60, 40); //borderThickness, fontsize + borderThickness);
   context.stroke();
   */
-  var RecSize = sizeDefault*1; //TODO set custom sizes according the overed particle (create a custom Shader material)
+  var RecSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
   context.strokeStyle = 'white';
   context.rect( canvas.width/2 - RecSize/2, canvas.height/2 - RecSize/2,RecSize,RecSize);
   context.stroke();
@@ -112,6 +119,30 @@ PointCloud.prototype.raycasterSetup = function(){
   //this.overSprite.position.set(0,0,0); //-externalSizeRange*.5,externalSizeRange*.5);
 	scene.add( this.overSprite);
 
+  //CREATING THE SQUARE FOR SELECTED PARTICLE
+  var canvas = document.createElement('canvas');
+  canvas.width = 120;
+  canvas.height = 40;
+  var fontsize = 10;
+  var fontface = "Arial";
+	var context = canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  var circleSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
+  context.strokeStyle = 'white';
+  context.beginPath();
+  context.arc(canvas.width/2,canvas.height/2 ,circleSize,0,2*Math.PI);
+  context.stroke();
+
+	this.textureSel = new THREE.Texture(canvas);
+	this.textureSel.needsUpdate = true;
+  this.textureSel.minFilter = THREE.LinearFilter;
+
+  // Pass the canvas texture to the material
+	var SelectedParticleMaterial = new THREE.SpriteMaterial(
+		{ map: this.textureSel, fog: true  } );
+	this.selectSprite = new THREE.Sprite( SelectedParticleMaterial );
+	this.selectSprite.scale.set(30,10,0);
+	scene.add( this.selectSprite);
 }
 PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
 	raycaster.setFromCamera( mouse, camera );
@@ -125,7 +156,6 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
       newElementSelected = true;
       lastIndexMouse = intersect.index;
       sendMessageToParent( [lastIndexMouse] );
-      console.log(m.geometry.attributes.position.array[ intersect.index * 3 ]);
     }
 
     // detect and the the overed particle
@@ -144,7 +174,22 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
 //      console.log(lastIndexMouse);
     }
   }
+  if (onClick && newElementSelected) {
+    if ( lastIndexMouse != -1 ) { // exist one overed particle
+      var toTrue = this.clickStateParticles[intersect.index] = !this.clickStateParticles[intersect.index];
+      if (toTrue) this.clickedParticles.push(intersect.index);
+      console.log("state of the particle clicked? ", this.clickStateParticles[intersect.index] );
 
+      for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
+        // get the particle state from the index within the clickedParticles list
+        if(this.clickStateParticles[ this.clickedParticles[i] ] == false){
+          this.clickedParticles.splice(i, 1);
+        }
+      }
+      console.log(this.clickedParticles);
+    }
+    onClick = false;
+  }
 };
 
 PointCloud.prototype.getMesh = function(){

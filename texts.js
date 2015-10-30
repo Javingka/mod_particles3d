@@ -63,7 +63,7 @@ var XaxisTextSprites = [] ;
 var YaxisTextSprites = [] ;
 var ZaxisTextSprites = [] ;
 function settingAxisTexts(){
-  var offsetDist = externalSizeRange*.55;
+  var offsetDist = externalSizeRange*.6;
   // X texts
   XaxisTextSprites[0] = makeTextSprite( axisLabels[0], 
 		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );

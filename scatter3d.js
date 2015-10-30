@@ -14,7 +14,7 @@ var actualCloud, actualMesh;
 var controlsParam = [];
 
 //variable to store the selected item id and color
-var newElementSelected = false;
+var newOveredParticle = false;
 var lastIndexMouse = -1;
 var lastIndexMouseCol = new THREE.Color();
 

@@ -4,6 +4,10 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   this.faces = 1;
   this.clickStateParticles = [];
   this.clickedParticles = [];
+  this.newOveredParticle = false;
+  this.indexDownClick;
+  this.indexUpClick;
+
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
 //	var d = elementSize, d2 = d/2;
 
@@ -114,6 +118,7 @@ PointCloud.prototype.raycasterSetup = function(){
 	var overParticleMaterial = new THREE.SpriteMaterial(
 		{ map: this.texture, fog: true  } );
 	this.overSprite = new THREE.Sprite( overParticleMaterial );
+  this.overSprite.name = 'selectSprite';
 	this.overSprite.scale.set(30,10,0);
 
   //this.overSprite.position.set(0,0,0); //-externalSizeRange*.5,externalSizeRange*.5);
@@ -127,7 +132,7 @@ PointCloud.prototype.raycasterSetup = function(){
   var fontface = "Arial";
 	var context = canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  var circleSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
+  var circleSize = sizeDefault*1.2; //TODO set custom sizes according the overed particle (create a custom Shader material)
   context.strokeStyle = 'white';
   context.beginPath();
   context.arc(canvas.width/2,canvas.height/2 ,circleSize,0,2*Math.PI);
@@ -137,56 +142,106 @@ PointCloud.prototype.raycasterSetup = function(){
 	this.textureSel.needsUpdate = true;
   this.textureSel.minFilter = THREE.LinearFilter;
 
-  // Pass the canvas texture to the material
-	var SelectedParticleMaterial = new THREE.SpriteMaterial(
-		{ map: this.textureSel, fog: true  } );
-	this.selectSprite = new THREE.Sprite( SelectedParticleMaterial );
-	this.selectSprite.scale.set(30,10,0);
-	scene.add( this.selectSprite);
 }
 PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
 	raycaster.setFromCamera( mouse, camera );
 
 	var intersections = raycaster.intersectObject( m );
-//	var intersects = raycaster.intersectObject( m );
 	if ( intersections.length > 0 ) {
-		var intersect = intersections[ 0 ]; //the first face intersecting the line between the camera center and the mouse point
+		var intersect = intersections[ 0 ]; //the first particle intersecting the line between the camera center and the mouse point
 
-    if (intersect.index != lastIndexMouse) { // new over element
-      newElementSelected = true;
-      lastIndexMouse = intersect.index;
-      sendMessageToParent( [lastIndexMouse] );
+    if (intersect.index != lastIndexMouse) { // new over element different from the last
+      this.newOveredParticle = true;
+      lastIndexMouse = intersect.index; // store this index to use to detect future point intersections
+      sendMessageToParent( [lastIndexMouse, -1, -1] ); // SEND!! message to Lichen
     }
 
-    // detect and the the overed particle
+    // draw and place a sprite over the focused particle
     var overS = this.overSprite;
-    overS.visible = true;
-    overS.position.set(m.geometry.attributes.position.array[ intersect.index * 3 ],
+    overS.visible = true; // set this sprite visible
+    overS.position.set( // and set the new position for the sprite
+      m.geometry.attributes.position.array[ intersect.index * 3 ],
       m.geometry.attributes.position.array[ intersect.index * 3 + 1],
-      m.geometry.attributes.position.array[ intersect.index * 3 + 2]);
+      m.geometry.attributes.position.array[ intersect.index * 3 + 2]
+    );
   } else {
     var overS = this.overSprite;
     overS.visible = false;
-    if (newElementSelected )  {
-      newElementSelected = false;
+    if (this.newOveredParticle  )  {
+      this.newOveredParticle  = false;
       lastIndexMouse = -1;
-      sendMessageToParent( [lastIndexMouse] );
+      sendMessageToParent( [lastIndexMouse,-1,-1] ); // SEND!! message to Lichen
 //      console.log(lastIndexMouse);
     }
+    onClick = false;
   }
-  if (onClick && newElementSelected) {
-    if ( lastIndexMouse != -1 ) { // exist one overed particle
+  // When has a overed particle and receibe a click
+  if (onClick && this.newOveredParticle ) {
+    if ( lastIndexMouse != -1 ) { // if the lastIndexMouse has an actual index value.
       var toTrue = this.clickStateParticles[intersect.index] = !this.clickStateParticles[intersect.index];
-      if (toTrue) this.clickedParticles.push(intersect.index);
-      console.log("state of the particle clicked? ", this.clickStateParticles[intersect.index] );
 
+      // If the state of the particle overed is true. will be added to the selected list of particles.
+      if (toTrue) {
+          redIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 0];
+          greenIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 1];
+          blueIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 2];
+
+          // adding the selected texture to the particle
+        	var SelectedParticleMaterial = new THREE.SpriteMaterial(
+        		{ map: this.textureSel, fog: true  }
+          );
+        	var selectSprite = new THREE.Sprite( SelectedParticleMaterial );
+        	selectSprite.scale.set(30,10,0);
+          selectSprite.name = intersect.index;
+          selectSprite.position.set(
+            m.geometry.attributes.position.array[ intersect.index * 3 + 0],
+            m.geometry.attributes.position.array[ intersect.index * 3 + 1],
+            m.geometry.attributes.position.array[ intersect.index * 3 + 2]
+            ); //-externalSizeRange*.5,externalSizeRange*.5);
+        	scene.add( selectSprite);
+          //console.log(selectSprite.name);
+
+          // adding the particle index and color to the array.
+          this.clickedParticles.push(
+            [
+              intersect.index,
+              new THREE.Color(
+                m.geometry.attributes.color.array[ intersect.index * 3 + 0],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 1],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 2]
+              )
+            ] );
+          sendMessageToParent( [-1,intersect.index,-1] ); // SEND!! message to Lichen
+
+          // setting a 'selected color'
+          m.geometry.attributes.color.array[ intersect.index * 3 + 0] = 1;
+          m.geometry.attributes.color.array[ intersect.index * 3 + 1] = 1;
+          m.geometry.attributes.color.array[ intersect.index * 3 + 2] = 0;
+          m.geometry.attributes.color.needsUpdate = true;
+//          console.log("cp: ",this.clickedParticles[this.clickedParticles.length-1][1]);
+      }
+
+      // loop over the entire list of selected particles
       for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
         // get the particle state from the index within the clickedParticles list
-        if(this.clickStateParticles[ this.clickedParticles[i] ] == false){
+        if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
+        { // if it false. return this particle state to false. and remove the object scene drawed
+          //recovering the color
+          var indexParticleToRemove = this.clickedParticles[i][0];
+          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 0] = this.clickedParticles[i][1].r;
+          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 1] = this.clickedParticles[i][1].g;
+          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 2] = this.clickedParticles[i][1].b;
+          m.geometry.attributes.color.needsUpdate = true;
+
+          //remove the scene object
+          var selectedObject = scene.getObjectByName(indexParticleToRemove);
+          sendMessageToParent( [-1,-1,indexParticleToRemove] ); // SEND!! message to Lichen
+          scene.remove( selectedObject );
+          // removed element from selected list
           this.clickedParticles.splice(i, 1);
         }
       }
-      console.log(this.clickedParticles);
+      //console.log(this.clickedParticles);
     }
     onClick = false;
   }

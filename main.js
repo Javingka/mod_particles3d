@@ -15,7 +15,7 @@ var onClick = false;
 var axisLabels=[];
 function onMessageReceived( event ){
 
-    if (typeof event !== 'undefined' && typeof event.data[1] !== 'undefined') {
+    if (typeof event !== 'undefined' && typeof event.data[1] !== 'undefined' && event.data.length!=3 ) {
       console.log( "onMessageReceived, event.data:", event.data );
       var workingPositionLists = false;
 
@@ -99,16 +99,18 @@ function onDocumentMouseMove( event ) {
 	event.preventDefault();
 	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+//  if (controls.getState() ==0 ) onClick = false;
 }
 // when the mouse moves, call the given function
 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+document.addEventListener( 'mouseup', onMouseUp, false );
 function onDocumentMouseDown( event )
 {
-	// the following line would stop any other event handler from firing
-	// (such as the mouse's TrackballControls)
-	// event.preventDefault();
-  if ( lastIndexMouse != -1 ) onClick = true;
+  if ( lastIndexMouse != -1 && controls.getState() !=1 ) onClick = true;
 }
+function onMouseUp( event ) {
+}
+
 // Register to the 'message' event to get the previous function called
 window.addEventListener( "message", onMessageReceived, false);
 

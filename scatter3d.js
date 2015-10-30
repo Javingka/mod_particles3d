@@ -1,6 +1,6 @@
 
 var controls; // mouse navigation
-var container;// DOM canvas to draw 
+var container;// DOM canvas to draw
 var stats; // fps stats
 var camera, scene, renderer;
 var raycaster;
@@ -22,30 +22,30 @@ var	mouse = new THREE.Vector2();
 var externalSizeRange;
 
 /**
- * Set a new scatter 3d 
- * @param {elementCount} how many elements will be rendered  
- * @param {elementSize} size of the element  
- * @param {color} Color or array of colors. 
- * @param {listX} list of x coordinates 
+ * Set a new scatter 3d
+ * @param {elementCount} how many elements will be rendered
+ * @param {elementSize} size of the element
+ * @param {color} Color or array of colors.
+ * @param {listX} list of x coordinates
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
  */
 function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
- // elementSize= geometryType==0? elementSize:elementSize*0.1;  
+ // elementSize= geometryType==0? elementSize:elementSize*0.1;
 
-  externalSizeRange = geometryType==0? 200:200;  
+  externalSizeRange = geometryType==0? 200:200;
 
   //create a camera, and set the position according the last camera visualization positions if existed
   camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, .1, 15000);
   if(typeof controls !== 'undefined') {
     console.log("loading camera position");
-    camera.position.x = controlsParam[0].x ; 
-    camera.position.y = controlsParam[0].y ; 
-    camera.position.z = controlsParam[0].z; 
+    camera.position.x = controlsParam[0].x ;
+    camera.position.y = controlsParam[0].y ;
+    camera.position.z = controlsParam[0].z;
 
   } else {
-    camera.position.z = externalSizeRange*2.8;
+      camera.position.z = externalSizeRange*1.8; //externalSizeRange*2.8;
   }
   if(typeof actualMesh !== 'undefined') {
     console.log('removing old mesh');
@@ -56,7 +56,7 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   var near = 100;// camera.position.z - externalSizeRange * .8 ;
   var far = near + externalSizeRange *4 ;//* .4;
 //  scene.fog = new THREE.Fog( 0x000000, near,far);
-  
+
   //External cube used to draw the vertices as white lines
   var geometry = new THREE.BoxGeometry( externalSizeRange,externalSizeRange,externalSizeRange );
   var material = new THREE.MeshBasicMaterial( { color: 0xffffff , opacity: 0.0, transparent: true, visible:false, fog:false} );
@@ -70,14 +70,13 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
 	// raycaster to detect user interactions with mouse position
   // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
 	raycaster = new THREE.Raycaster();
-  var threshold = .5;
+  var threshold = 2;
   raycaster.params.Points.threshold = threshold;
-  
-  //Create the scatter points! 
+
+  //Create the scatter points!
   if(typeof listX !== 'undefined') {
     if (geometryType == 0) {
       actualCloud  = new PyramidMesh(externalSizeRange, elementCount, listX, listY, listZ);
-      actualCloud.raycasterSetup();
     }
     else if (geometryType == 1) {
       actualCloud = new PointCloud( externalSizeRange, elementCount, listX, listY, listZ);
@@ -85,12 +84,12 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   } else {
     if (geometryType == 0) {
       actualCloud = new PyramidMesh(externalSizeRange, elementCount );
-      actualCloud.raycasterSetup();
     }
     else if (geometryType == 1) {
       actualCloud = new PointCloud( externalSizeRange, elementCount );
     }
   }
+  actualCloud.raycasterSetup();
   actualMesh = actualCloud.getMesh();
   //  actualMesh.scale.set( 10,10,10 );
   scene.add(actualMesh);
@@ -100,7 +99,7 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 
-  //when receive new data a new canvas is created, so delete the actual canvas element if exist 
+  //when receive new data a new canvas is created, so delete the actual canvas element if exist
   if ($('canvas').length > 0) {
     $('canvas').remove();
   }
@@ -113,9 +112,9 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
     controls = new THREE.OrbitControls( camera, renderer.domElement);
   } else {
     controls = new THREE.OrbitControls( camera, renderer.domElement);
-    controls.center.x = controlsParam[1].x ; 
-    controls.center.y = controlsParam[1].y ; 
-    controls.center.z = controlsParam[1].z ; 
+    controls.center.x = controlsParam[1].x ;
+    controls.center.y = controlsParam[1].y ;
+    controls.center.z = controlsParam[1].z ;
   }
 
   settingAxisTexts();
@@ -139,8 +138,8 @@ function animateScatter() {
   updateAxisText();
 
   //	stats.update();
-  controlsParam[0] = controls.getPos(); 
-  controlsParam[1] = controls.getCenter(); 
+  controlsParam[0] = controls.getPos();
+  controlsParam[1] = controls.getCenter();
 }
 
 /*
@@ -173,7 +172,7 @@ function getScreenVector(x, y, z, camera, width, height) {
 
   vector.x = (vector.x + 1) / 2 * width;
   vector.y = -(vector.y - 1) / 2 * height;
-		
+
   return vector;
 }
 

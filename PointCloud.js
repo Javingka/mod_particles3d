@@ -82,6 +82,7 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   var material = new THREE.PointsMaterial( {size: sizeDefault, vertexColors: THREE.VertexColors, fog: false } );
 
   this.pointCloud = new THREE.Points( this.geometry, material );
+  this.pointCloud.name = 'pointCloud';
   this.pointCloud.dynamic=true;
 };
 
@@ -144,8 +145,9 @@ PointCloud.prototype.raycasterSetup = function(){
 
 }
 PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
+  camera.updateMatrixWorld();
 	raycaster.setFromCamera( mouse, camera );
-
+  
 	var intersections = raycaster.intersectObject( m );
 	if ( intersections.length > 0 ) {
 		var intersect = intersections[ 0 ]; //the first particle intersecting the line between the camera center and the mouse point

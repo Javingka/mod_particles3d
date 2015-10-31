@@ -37,7 +37,8 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   externalSizeRange = geometryType==0? 200:200;
 
   //create a camera, and set the position according the last camera visualization positions if existed
-  camera = new THREE.PerspectiveCamera( 27, window.innerWidth / window.innerHeight, .1, 15000);
+  camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, .1, 15000);
+
   if(typeof controls !== 'undefined') {
     console.log("loading camera position");
     camera.position.x = controlsParam[0].x ;
@@ -70,7 +71,7 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
 	// raycaster to detect user interactions with mouse position
   // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
 	raycaster = new THREE.Raycaster();
-  var threshold = 2;
+  var threshold = 1;
   raycaster.params.Points.threshold = threshold;
 
   //Create the scatter points!
@@ -95,7 +96,7 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
   scene.add(actualMesh);
 
 
-	renderer = new THREE.WebGLRenderer( { antialias: false } );
+	renderer = new THREE.WebGLRenderer( { antialias: false} );
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( window.innerWidth, window.innerHeight );
 

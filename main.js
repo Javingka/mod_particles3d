@@ -15,7 +15,11 @@ var onClick = false;
 var axisLabels=[];
 function onMessageReceived( event ){
 
-    if (typeof event !== 'undefined' && typeof event.data[1] !== 'undefined' && event.data.length!=3 ) {
+    if (typeof event !== 'undefined' &&
+      event.data.name != "selected-Array" &&
+      event.data.name != 'rollover' &&
+      event.data.name != 'selected-particle')
+      {
       console.log( "onMessageReceived, event.data:", event.data );
       var workingPositionLists = false;
 
@@ -40,7 +44,8 @@ function onMessageReceived( event ){
       console.log("Axis labels: ", axisLabels);
 
        //type of geometryElement
-      var geometryType = typeof event.data[6] !== 'undefined'?event.data[6]:1; // 0 → pyramid | 1 → square
+      var geometryType = 1;
+      var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:1; // 0 → pyramid | 1 → square
       console.log("geometry type: ", geometryType, " → ", (geometryType==0?"pyramids":"square") );
 
       //the particle sizes
@@ -77,14 +82,16 @@ function onMessageReceived( event ){
       // Array with the sizes of each particle
  //     var listSize = typeof event.data[6] !== 'undefined'?event.data[6]:[]; //inverted
 
-
-
+      // send a parent message to clean possible old data
+      createSendMessageToParent( [-1,-1], 'rollover');
       //if the lists have the same lenght and have more than 1 element. use the list to get the particles number
       if (workingPositionLists){
-        initScatter( particleNumber , geometryType , listX, listY, listZ );
+        initScatter( particleNumber , geometryType, selectionMode, listX, listY, listZ );
       }
       else {
-        initScatter( particleNumber , geometryType ); } animateScatter();
+        initScatter( particleNumber , geometryType, selectionMode );
+      }
+      animateScatter();
     }
 
 }
@@ -117,4 +124,10 @@ window.addEventListener( "message", onMessageReceived, false);
 // A simple function to send messages to the parent window
 function sendMessageToParent( message ){
   parent.postMessage( message, '*' );
+}
+
+function createSendMessageToParent (a,n) {
+  a.name = n;
+  sendMessageToParent( a ); // SEND!! message to Lichen
+  console.log(n, ' send to parent with the value:  ',a );
 }

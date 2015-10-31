@@ -30,7 +30,7 @@ var externalSizeRange;
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
  */
-function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
+function initScatter( elementCount, geometryType, selectionMode,  listX, listY, listZ  ) {
   container = document.getElementById( 'container' );
  // elementSize= geometryType==0? elementSize:elementSize*0.1;
 
@@ -80,14 +80,14 @@ function initScatter( elementCount, geometryType, listX, listY, listZ  ) {
       actualCloud  = new PyramidMesh(externalSizeRange, elementCount, listX, listY, listZ);
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount, listX, listY, listZ);
+      actualCloud = new PointCloud( externalSizeRange, elementCount, selectionMode, listX, listY, listZ);
     }
   } else {
     if (geometryType == 0) {
       actualCloud = new PyramidMesh(externalSizeRange, elementCount );
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount );
+      actualCloud = new PointCloud( externalSizeRange, elementCount, selectionMode ); //TODO change to the receibed data
     }
   }
   actualCloud.raycasterSetup();

@@ -1,11 +1,11 @@
 var destination = [];
-
-function PointCloud(externalSizeRange, count , listX, listY, listZ, modeS ) {
-  this.modeSelection = modeS;
+function PointCloud(externalSizeRange, count, selectionM, listX, listY, listZ ) {
+  this.selMode = selectionM;
   this.count = count;
   this.faces = 1;
   this.clickStateParticles = [];
   this.clickedParticles = [];
+  this.lastSelected;
   this.newOveredParticle = false;
   this.indexDownClick;
   this.indexUpClick;
@@ -87,7 +87,6 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ, modeS ) {
   this.pointCloud.name = 'pointCloud';
   this.pointCloud.dynamic=true;
 };
-
 PointCloud.prototype.raycasterSetup = function(){
 
   var recSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
@@ -103,7 +102,7 @@ PointCloud.prototype.raycasterSetup = function(){
 	scene.add( this.overSprite);
 
   //CREATING THE SQUARE FOR SELECTED PARTICLE
-	this.textureSel = (new CanvasRecTexture( 120, 40, recSize*2, 'white', 1 )).getTexture();//new THREE.Texture(canvas);
+	this.textureSel = (new CanvasRecTexture( 120, 40, recSize*2, 'white', 1 )).getTexture(); //new THREE.Texture(canvas);
 	this.textureSel.needsUpdate = true;
   this.textureSel.minFilter = THREE.LinearFilter;
 }
@@ -119,7 +118,8 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
     if (intersect.index != lastIndexMouse) { // new over element different from the last
       this.newOveredParticle = true;
       lastIndexMouse = intersect.index; // store this index to use to detect future point intersections
-      sendMessageToParent( [lastIndexMouse, -1, -1] ); // SEND!! message to Lichen
+      createSendMessageToParent( [lastIndexMouse], 'rollover');
+      //sendMessageToParent( [lastIndexMouse, -1, -1] ); // SEND!! message to Lichen
     }
 
     // draw and place a sprite over the focused particle
@@ -136,7 +136,7 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
     if (this.newOveredParticle  )  {
       this.newOveredParticle  = false;
       lastIndexMouse = -1;
-      sendMessageToParent( [lastIndexMouse,-1,-1] ); // SEND!! message to Lichen
+      createSendMessageToParent( [lastIndexMouse], 'rollover');
 //      console.log(lastIndexMouse);
     }
     onClick = false;
@@ -167,52 +167,82 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
         	scene.add( selectSprite);
           //console.log(selectSprite.name);
 
-          // adding the particle index and color to the array.
-          this.clickedParticles.push(
-            [
-              intersect.index,
-              new THREE.Color(
-                m.geometry.attributes.color.array[ intersect.index * 3 + 0],
-                m.geometry.attributes.color.array[ intersect.index * 3 + 1],
-                m.geometry.attributes.color.array[ intersect.index * 3 + 2]
-              )
-            ] );
-          sendMessageToParent( [-1,intersect.index,-1] ); // SEND!! message to Lichen
+          // selMode 0 → return just one Selected Index | selMode 1 → return the entire array
+          // On selMode 0 this array will have just one element, the actual selected particle
+          // so just the first element is added just like selMode 1
+          if (this.selMode == 1 || ( this.selMode == 0 && this.clickedParticles.length < 1 ) ) {
+            // adding the particle index and color to the array.
+            this.clickedParticles.push(
+              [
+                intersect.index,
+                new THREE.Color(
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 0],
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 1],
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 2]
+                )
+              ]
+            );
+          } else { // if the array already have 2 elements just chenge it.
+            this.restoreParticleToOff(this.clickedParticles[0],m);
+            this.clickedParticles[0] = [
+                intersect.index,
+                new THREE.Color(
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 0],
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 1],
+                  m.geometry.attributes.color.array[ intersect.index * 3 + 2]
+                )
+              ];
+          }
+          //sendMessageToParent( [-1,intersect.index,-1] ); // SEND!! message to Lichen
 
           // setting a 'selected color'
-          m.geometry.attributes.color.array[ intersect.index * 3 + 0] = 1;
-          m.geometry.attributes.color.array[ intersect.index * 3 + 1] = 1;
-          m.geometry.attributes.color.array[ intersect.index * 3 + 2] = 0;
+          m.geometry.attributes.color.array[ intersect.index * 3 + 0] = m.geometry.attributes.color.array[ intersect.index * 3 + 0]*.8;
+          m.geometry.attributes.color.array[ intersect.index * 3 + 1] = m.geometry.attributes.color.array[ intersect.index * 3 + 1]*.8;
+          m.geometry.attributes.color.array[ intersect.index * 3 + 2] = m.geometry.attributes.color.array[ intersect.index * 3 + 2]*.8;
           m.geometry.attributes.color.needsUpdate = true;
-//          console.log("cp: ",this.clickedParticles[this.clickedParticles.length-1][1]);
+      } else {
+        // loop over the entire list of selected particles to remove the unselected particle from the list
+        for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
+          // get the particle state from the index within the clickedParticles list
+          if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
+          { // if it false. return this particle state to false. and remove the object scene drawed
+            this.restoreParticleToOff(this.clickedParticles[i],m);
+            this.clickedParticles.splice(i, 1);
+          }
+        }
       }
 
-      // loop over the entire list of selected particles
-      for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
-        // get the particle state from the index within the clickedParticles list
-        if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
-        { // if it false. return this particle state to false. and remove the object scene drawed
-          //recovering the color
-          var indexParticleToRemove = this.clickedParticles[i][0];
-          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 0] = this.clickedParticles[i][1].r;
-          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 1] = this.clickedParticles[i][1].g;
-          m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 2] = this.clickedParticles[i][1].b;
-          m.geometry.attributes.color.needsUpdate = true;
 
-          //remove the scene object
-          var selectedObject = scene.getObjectByName(indexParticleToRemove);
-          sendMessageToParent( [-1,-1,indexParticleToRemove] ); // SEND!! message to Lichen
-          scene.remove( selectedObject );
-          // removed element from selected list
-          this.clickedParticles.splice(i, 1);
-        }
+      // SEND THE SELECTED ARRAY TO LICHEN
+      if (this.selMode == 1 ) {
+        var indexArr = [];
+        this.clickedParticles.forEach( function logArrayElements(element, index, array) {
+          indexArr.push(element[0]); // pass the id number to the array
+        });
+        createSendMessageToParent( [lastIndexMouse,indexArr], 'selected-Array');
+      } else if (this.selMode == 0 ) {
+        //send the selected particle index or -1 to indicate there is no selected particle
+        var newSelect = this.clickedParticles.length>0? this.clickedParticles[0][0]:-1;
+        createSendMessageToParent( [lastIndexMouse,newSelect], 'selected-particle');
       }
       //console.log(this.clickedParticles);
     }
     onClick = false;
   }
 };
+PointCloud.prototype.restoreParticleToOff = function(clickedP_i,m) {
+  //recovering the color
+  var indexParticleToRemove = clickedP_i[0];
+  m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 0] = clickedP_i[1].r;
+  m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 1] = clickedP_i[1].g;
+  m.geometry.attributes.color.array[ indexParticleToRemove * 3 + 2] = clickedP_i[1].b;
+  m.geometry.attributes.color.needsUpdate = true;
 
+  //remove the scene object
+  var selectedObject = scene.getObjectByName(indexParticleToRemove);
+  scene.remove( selectedObject );
+  // removed element from selected list
+}
 PointCloud.prototype.getMesh = function(){
 	return this.pointCloud ;
 };
@@ -223,7 +253,6 @@ PointCloud.prototype.getFacesNumber = function() {
   return this.faces;
 };
 
-// OBJECT to create texture for PointCloud selection visualization
 function CanvasRecTexture( cW, cH, recS, colorS, lineW ) {
   this.canvas = document.createElement('canvas');
   this.canvas.width = cW;

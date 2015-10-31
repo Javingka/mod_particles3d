@@ -1,5 +1,7 @@
 var destination = [];
-function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
+
+function PointCloud(externalSizeRange, count , listX, listY, listZ, modeS ) {
+  this.modeSelection = modeS;
   this.count = count;
   this.faces = 1;
   this.clickStateParticles = [];
@@ -9,7 +11,7 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
   this.indexUpClick;
 
 	var n = externalSizeRange, n2 = n/2;	// elements spread in the cube
-//	var d = elementSize, d2 = d/2;
+  //	var d = elementSize, d2 = d/2;
 
   // custom attributes to be applied on buffer geomtry
   var positions = new Float32Array( count * 3 );
@@ -88,36 +90,11 @@ function PointCloud(externalSizeRange, count , listX, listY, listZ ) {
 
 PointCloud.prototype.raycasterSetup = function(){
 
-  var canvas = document.createElement('canvas');
-  canvas.width = 120;
-  canvas.height = 40;
-  var fontsize = 10;
-  var fontface = "Arial";
-	var context = canvas.getContext('2d');
-	context.font = "Bold " + fontsize + "px " + fontface;
-
-  // CREATING THE SQUARE FOR THE OVERED PARTICLE
-	// text color
-	context.fillStyle = "rgba(255, 255, 255, 1.0)";
-  context.lineWidth=.8;
-  /*  context.textAlign="center";
-  context.strokeStyle = 'black';
-  context.fillText( "message", 60, 40); //borderThickness, fontsize + borderThickness);
-  context.strokeText( "message", 60, 40); //borderThickness, fontsize + borderThickness);
-  context.stroke();
-  */
-  var RecSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
-  context.strokeStyle = 'white';
-  context.rect( canvas.width/2 - RecSize/2, canvas.height/2 - RecSize/2,RecSize,RecSize);
-  context.stroke();
-	// canvas contents will be used for a texture
-	this.texture = new THREE.Texture(canvas);
-	this.texture.needsUpdate = true;
-  this.texture.minFilter = THREE.LinearFilter;
-
-  // Pass the canvas texture to the material
+  var recSize = sizeDefault*1.1; //TODO set custom sizes according the overed particle (create a custom Shader material)
+  var overText = new CanvasRecTexture( 120, 40, recSize, 'white', 1 );
 	var overParticleMaterial = new THREE.SpriteMaterial(
-		{ map: this.texture, fog: true  } );
+		{ map: overText.getTexture(), fog: true  } );
+
 	this.overSprite = new THREE.Sprite( overParticleMaterial );
   this.overSprite.name = 'selectSprite';
 	this.overSprite.scale.set(30,10,0);
@@ -126,28 +103,15 @@ PointCloud.prototype.raycasterSetup = function(){
 	scene.add( this.overSprite);
 
   //CREATING THE SQUARE FOR SELECTED PARTICLE
-  var canvas = document.createElement('canvas');
-  canvas.width = 120;
-  canvas.height = 40;
-  var fontsize = 10;
-  var fontface = "Arial";
-	var context = canvas.getContext('2d');
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  var circleSize = sizeDefault*1.2; //TODO set custom sizes according the overed particle (create a custom Shader material)
-  context.strokeStyle = 'white';
-  context.beginPath();
-  context.arc(canvas.width/2,canvas.height/2 ,circleSize,0,2*Math.PI);
-  context.stroke();
-
-	this.textureSel = new THREE.Texture(canvas);
+	this.textureSel = (new CanvasRecTexture( 120, 40, recSize*2, 'white', 1 )).getTexture();//new THREE.Texture(canvas);
 	this.textureSel.needsUpdate = true;
   this.textureSel.minFilter = THREE.LinearFilter;
-
 }
+
 PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
   camera.updateMatrixWorld();
 	raycaster.setFromCamera( mouse, camera );
-  
+
 	var intersections = raycaster.intersectObject( m );
 	if ( intersections.length > 0 ) {
 		var intersect = intersections[ 0 ]; //the first particle intersecting the line between the camera center and the mouse point
@@ -258,3 +222,25 @@ PointCloud.prototype.getCount = function() {
 PointCloud.prototype.getFacesNumber = function() {
   return this.faces;
 };
+
+// OBJECT to create texture for PointCloud selection visualization
+function CanvasRecTexture( cW, cH, recS, colorS, lineW ) {
+  this.canvas = document.createElement('canvas');
+  this.canvas.width = cW;
+  this.canvas.height = cH;
+  this.context = this.canvas.getContext('2d');
+
+  // CREATING THE SQUARE FOR THE OVERED PARTICLE
+  var rS = recS/2; //TODO set custom sizes according the overed particle size ( needs creation a custom Shader material)
+  this.context.strokeStyle = colorS;
+  this.context.lineWidth= lineW;
+  this.context.rect( cW/2 - rS, cH/2 - rS, recS, recS);
+  this.context.stroke();
+
+	// canvas contents will be used for a texture
+	this.texture = new THREE.Texture(this.canvas);
+	this.texture.needsUpdate = true;
+  this.texture.minFilter = THREE.LinearFilter;
+
+  this.getTexture = function() { return this.texture; }
+}

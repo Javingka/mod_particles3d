@@ -112,7 +112,10 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
 	raycaster.setFromCamera( mouse, camera );
 
 	var intersections = raycaster.intersectObject( m );
-	if ( intersections.length > 0 ) {
+
+  // When a particle is overed
+	if ( intersections.length > 0 )
+  {
 		var intersect = intersections[ 0 ]; //the first particle intersecting the line between the camera center and the mouse point
 
     if (intersect.index != lastIndexMouse) { // new over element different from the last
@@ -130,76 +133,97 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
       m.geometry.attributes.position.array[ intersect.index * 3 + 1],
       m.geometry.attributes.position.array[ intersect.index * 3 + 2]
     );
-  } else {
+  }
+  else
+  {
     var overS = this.overSprite;
     overS.visible = false;
     if (this.newOveredParticle  )  {
       this.newOveredParticle  = false;
       lastIndexMouse = -1;
       createSendMessageToParent( [lastIndexMouse], 'rollover');
-//      console.log(lastIndexMouse);
+      //      console.log(lastIndexMouse);
     }
     onClick = false;
   }
+
+  // When clicked the backgrond
+  if (onBackgroundClick)
+  {
+    // set all particles to unselected
+    for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
+      this.clickStateParticles[ this.clickedParticles[i][0] ] = false;
+      // get the particle state from the index within the clickedParticles list
+      if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
+      { // if it false. return this particle state to false. and remove the object scene drawed
+        this.restoreParticleToOff(this.clickedParticles[i],m);
+        this.clickedParticles.splice(i, 1);
+      }
+    }
+    createSendMessageToParent( [-1,-1], 'clear-selection');
+    onBackgroundClick = false;
+  }
+
   // When has a overed particle and receibe a click
-  if (onClick && this.newOveredParticle ) {
+  if (onClick && this.newOveredParticle )
+  {
     if ( lastIndexMouse != -1 ) { // if the lastIndexMouse has an actual index value.
       var toTrue = this.clickStateParticles[intersect.index] = !this.clickStateParticles[intersect.index];
 
       // If the state of the particle overed is true. will be added to the selected list of particles.
       if (toTrue) {
-          redIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 0];
-          greenIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 1];
-          blueIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 2];
+        redIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 0];
+        greenIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 1];
+        blueIndexColor = m.geometry.attributes.color.array[ intersect.index * 3 + 2];
 
-          // adding the selected texture to the particle
-        	var SelectedParticleMaterial = new THREE.SpriteMaterial(
-        		{ map: this.textureSel, fog: true  }
+        // adding the selected texture to the particle
+      	var SelectedParticleMaterial = new THREE.SpriteMaterial(
+      		{ map: this.textureSel, fog: true  }
+        );
+      	var selectSprite = new THREE.Sprite( SelectedParticleMaterial );
+      	selectSprite.scale.set(30,10,0);
+        selectSprite.name = intersect.index;
+        selectSprite.position.set(
+          m.geometry.attributes.position.array[ intersect.index * 3 + 0],
+          m.geometry.attributes.position.array[ intersect.index * 3 + 1],
+          m.geometry.attributes.position.array[ intersect.index * 3 + 2]
+          ); //-externalSizeRange*.5,externalSizeRange*.5);
+      	scene.add( selectSprite);
+        //console.log(selectSprite.name);
+
+        // selMode 0 → return just one Selected Index | selMode 1 → return the entire array
+        // On selMode 0 this array will have just one element, the actual selected particle
+        // so just the first element is added just like selMode 1
+        if (this.selMode == 1 || ( this.selMode == 0 && this.clickedParticles.length < 1 ) ) {
+          // adding the particle index and color to the array.
+          this.clickedParticles.push(
+            [
+              intersect.index,
+              new THREE.Color(
+                m.geometry.attributes.color.array[ intersect.index * 3 + 0],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 1],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 2]
+              )
+            ]
           );
-        	var selectSprite = new THREE.Sprite( SelectedParticleMaterial );
-        	selectSprite.scale.set(30,10,0);
-          selectSprite.name = intersect.index;
-          selectSprite.position.set(
-            m.geometry.attributes.position.array[ intersect.index * 3 + 0],
-            m.geometry.attributes.position.array[ intersect.index * 3 + 1],
-            m.geometry.attributes.position.array[ intersect.index * 3 + 2]
-            ); //-externalSizeRange*.5,externalSizeRange*.5);
-        	scene.add( selectSprite);
-          //console.log(selectSprite.name);
+        } else { // if the array already have 2 elements just chenge it.
+          this.restoreParticleToOff(this.clickedParticles[0],m);
+          this.clickedParticles[0] = [
+              intersect.index,
+              new THREE.Color(
+                m.geometry.attributes.color.array[ intersect.index * 3 + 0],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 1],
+                m.geometry.attributes.color.array[ intersect.index * 3 + 2]
+              )
+            ];
+        }
+        //sendMessageToParent( [-1,intersect.index,-1] ); // SEND!! message to Lichen
 
-          // selMode 0 → return just one Selected Index | selMode 1 → return the entire array
-          // On selMode 0 this array will have just one element, the actual selected particle
-          // so just the first element is added just like selMode 1
-          if (this.selMode == 1 || ( this.selMode == 0 && this.clickedParticles.length < 1 ) ) {
-            // adding the particle index and color to the array.
-            this.clickedParticles.push(
-              [
-                intersect.index,
-                new THREE.Color(
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 0],
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 1],
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 2]
-                )
-              ]
-            );
-          } else { // if the array already have 2 elements just chenge it.
-            this.restoreParticleToOff(this.clickedParticles[0],m);
-            this.clickedParticles[0] = [
-                intersect.index,
-                new THREE.Color(
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 0],
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 1],
-                  m.geometry.attributes.color.array[ intersect.index * 3 + 2]
-                )
-              ];
-          }
-          //sendMessageToParent( [-1,intersect.index,-1] ); // SEND!! message to Lichen
-
-          // setting a 'selected color'
-          m.geometry.attributes.color.array[ intersect.index * 3 + 0] = m.geometry.attributes.color.array[ intersect.index * 3 + 0]*.8;
-          m.geometry.attributes.color.array[ intersect.index * 3 + 1] = m.geometry.attributes.color.array[ intersect.index * 3 + 1]*.8;
-          m.geometry.attributes.color.array[ intersect.index * 3 + 2] = m.geometry.attributes.color.array[ intersect.index * 3 + 2]*.8;
-          m.geometry.attributes.color.needsUpdate = true;
+        // setting a 'selected color'
+        m.geometry.attributes.color.array[ intersect.index * 3 + 0] = m.geometry.attributes.color.array[ intersect.index * 3 + 0]*.8;
+        m.geometry.attributes.color.array[ intersect.index * 3 + 1] = m.geometry.attributes.color.array[ intersect.index * 3 + 1]*.8;
+        m.geometry.attributes.color.array[ intersect.index * 3 + 2] = m.geometry.attributes.color.array[ intersect.index * 3 + 2]*.8;
+        m.geometry.attributes.color.needsUpdate = true;
       } else {
         // loop over the entire list of selected particles to remove the unselected particle from the list
         for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
@@ -208,10 +232,10 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
           { // if it false. return this particle state to false. and remove the object scene drawed
             this.restoreParticleToOff(this.clickedParticles[i],m);
             this.clickedParticles.splice(i, 1);
+            break;
           }
         }
       }
-
 
       // SEND THE SELECTED ARRAY TO LICHEN
       if (this.selMode == 1 ) {
@@ -229,6 +253,8 @@ PointCloud.prototype.raycasterIntersect = function( m, faceNumb ){
     }
     onClick = false;
   }
+
+
 };
 PointCloud.prototype.restoreParticleToOff = function(clickedP_i,m) {
   //recovering the color

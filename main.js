@@ -11,14 +11,17 @@ var sizeArray;
 var sizeDefault;
 var particleNumber;
 
+var onClickPos = new THREE.Vector2();
 var onClick = false;
+var onBackgroundClick = false;
 var axisLabels=[];
 function onMessageReceived( event ){
 
     if (typeof event !== 'undefined' &&
       event.data.name != "selected-Array" &&
       event.data.name != 'rollover' &&
-      event.data.name != 'selected-particle')
+      event.data.name != 'selected-particle' &&
+      event.data.name != 'clear-selection')
       {
       console.log( "onMessageReceived, event.data:", event.data );
       var workingPositionLists = false;
@@ -113,9 +116,16 @@ document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 document.addEventListener( 'mouseup', onMouseUp, false );
 function onDocumentMouseDown( event )
 {
-  if ( lastIndexMouse != -1 && controls.getState() !=1 ) onClick = true;
+  onClickPos.x = mouse.x;
+  onClickPos.y = mouse.y;
 }
 function onMouseUp( event ) {
+  var d = onClickPos.distanceTo(mouse);
+
+  if (d < 0.01) { // The difference is low so it is considered as a click
+    if ( lastIndexMouse != -1 && controls.getState() !=1 ) onClick = true;
+    if ( lastIndexMouse == -1 && controls.getState() !=1 ) onBackgroundClick = true;
+  }
 }
 
 // Register to the 'message' event to get the previous function called

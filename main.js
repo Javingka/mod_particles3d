@@ -69,7 +69,10 @@ function onMessageReceived( event ){
       var Cx = event.data[2][0];
       var Cy = event.data[2][1];
       var Cz = event.data[2][2];
-      if ( event.data[2].length == 3 && Array.isArray(event.data[2][0])&& typeof Cx === 'string' && typeof Cy === 'string' && typeof Cz === 'string' ){
+      var myRe = /(\d,\d,\d)/;
+      var regEx = myRe.exec(Cx);
+      console.log("regEx: ", regEx, " Cx ", Cx);
+      if ( event.data[2].length == 3 && regEx == null && typeof Cx === 'string' && typeof Cy === 'string' && typeof Cz === 'string' ){
         colorSettingType = 0; //the color is set by expressions to be evaluated
         expColorR = new Function('x,y,z,n', 'return '+ Cx );
         expColorG = new Function('x,y,z,n', 'return '+ Cy );
@@ -81,7 +84,7 @@ function onMessageReceived( event ){
         colorSettingType = 2; //the color is set by the array
         colorDefault = new THREE.Color(1,1,1);
       }
-
+      console.log("color Setting: ", colorSettingType);
       // Array with the sizes of each particle
  //     var listSize = typeof event.data[6] !== 'undefined'?event.data[6]:[]; //inverted
 

@@ -45,8 +45,8 @@
 		},
 		{
 			"type":"Number",
-			"name":"Element Type",
-			"description":"0: pyramids \n 1:squares",
+			"name":"Selection mode",
+			"description":"0: single selection \n 1: multiple selection",
 			"optional":true
 		}
 	]

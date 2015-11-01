@@ -69,7 +69,7 @@ function onMessageReceived( event ){
       var Cx = event.data[2][0];
       var Cy = event.data[2][1];
       var Cz = event.data[2][2];
-      if ( event.data[2].length == 3 && typeof Cx === 'string' && typeof Cy === 'string' && typeof Cz === 'string' ){
+      if ( event.data[2].length == 3 && Array.isArray(event.data[2][0])&& typeof Cx === 'string' && typeof Cy === 'string' && typeof Cz === 'string' ){
         colorSettingType = 0; //the color is set by expressions to be evaluated
         expColorR = new Function('x,y,z,n', 'return '+ Cx );
         expColorG = new Function('x,y,z,n', 'return '+ Cy );

@@ -50,9 +50,9 @@ function PointCloud(externalSizeRange, count, selectionM, listX, listY, listZ ) 
       cb = expColorB(x/n2,y/n2,z/n2,i); //( z / n ) + 0.5;
       break;
     case 1:
-      cr = colorArray[i][0];
-      cg = colorArray[i][1];
-      cb = colorArray[i][2];
+      cr = Array.isArray(colorArray[i])?colorArray[i][0]:parseInt(colorArray[i].slice(0,1));
+      cg = Array.isArray(colorArray[i])?colorArray[i][1]:parseInt(colorArray[i].slice(2,3));//colorArray[i][1];
+      cb = Array.isArray(colorArray[i])?colorArray[i][2]:parseInt(colorArray[i].slice(4,5));//colorArray[i][2];
       break;
     case 2:
       cr = colorDefault.r;

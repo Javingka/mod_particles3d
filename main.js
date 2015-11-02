@@ -142,27 +142,24 @@ function animate() {
 }
 
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	particleSystem.camera.aspect = window.innerWidth / window.innerHeight;
+	particleSystem.camera.updateProjectionMatrix();
+	particleSystem.renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
 	particleSystem.setMouseX( ( event.clientX / window.innerWidth ) * 2 - 1 );
 	particleSystem.setMouseY(- ( event.clientY / window.innerHeight ) * 2 + 1 );
-//  if (controls.getState() ==0 ) onClick = false;
 }
 // when the mouse moves, call the given function
 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 document.addEventListener( 'mouseup', onMouseUp, false );
-function onDocumentMouseDown( event )
-{
+function onDocumentMouseDown( event ) {
   onClickPos.x = particleSystem.getMouseX();
   onClickPos.y = particleSystem.getMouseY();
 }
 function onMouseUp( event ) {
-
   //console.log(particleSystem.actualCloud.onTransition);
   var d = onClickPos.distanceTo( particleSystem.getMouse() );
   //console.log("d: " + d + " LastMouse; " +  particleSystem.getLastIndMouse() + " controlsState: " + particleSystem.controls.getState());

@@ -1,6 +1,6 @@
 {
 	"name":"ScatterCube",
-	"description":"receives the number of elements and three list of positions for a scatterplot with 3 dimensions.",
+	"description":"receives the number of elements, size, colors and three list of positions for a scatterplot with 3 dimensions.",
 	"tags":"draw,area",
 	"familiy":"basic",
 	"authors":"Javier Cruz",
@@ -16,14 +16,13 @@
 		{
 			"type":"Number",
 			"name":"size",
-      "description":"Array with the sizes for each elements or a Number to define tha same size for all elements. (1-4). WARNING! The size Array for the type 1 (squares) is not working yet!",
+			"description":"Number to define the same size for all elements. (1-4)",
 			"optional":false
 		},
 		{
 			"type":"Array",
 			"name":"ColorArray",
-			"description":"Strings array or Arrays array with the list of colors for each element. \n
-			Or Array with three expressions, each one to define the red, green and blue values of each point.
+			"description":"Strings array or Arrays array with the list of colors for each element. Or Array with three expressions, each one to define the red, green and blue values of each point.
 			These expressions can use the following variables:
 			x → x pos of the point(-1 to 1) |
 			y → y pos of the point(-1 to 1) |

@@ -86,7 +86,7 @@ function onMessageReceived( event ){
         expColorR = new Function('x,y,z,n', 'return '+ Cx );
         expColorG = new Function('x,y,z,n', 'return '+ Cy );
         expColorB = new Function('x,y,z,n', 'return '+ Cz );
-      } else if ( workingPositionLists  && event.data[2].length == listX.length) {
+      } else if ( event.data[2].length == particleNumber) {
         colorSettingType = 1; //the color is set by the array
         colorArray = event.data[2];
       } else {
@@ -128,17 +128,8 @@ function onMessageReceived( event ){
           console.log('First particle System creation');
           particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, false);
         } else { // Or update the actual system
-          console.log('Update the particle System');
-          //If it has the same positions length. Update just that.
-          if ( particleSystem.particleCount == particleNumber) {
-            particleSystem.setNewPositionsAndColors(listX, listY, listZ);
-            particleSystem.updateSize(sizeDefault);
-            particleSystem.actualCloud.setOverSpriteAndSelectionTexture( particleSystem.scene );
-            console.log('The new list has the same length than last one');
-          } else {
-            console.log('the new message has a different length so make it all again');
-            particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, true);
-          }
+          console.log('Create again keeping the camera position');
+          particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, true);
         }
       }
       animate( );
@@ -172,7 +163,7 @@ function onDocumentMouseDown( event )
 }
 function onMouseUp( event ) {
 
-  console.log(particleSystem.actualCloud.onTransition);
+  //console.log(particleSystem.actualCloud.onTransition);
   var d = onClickPos.distanceTo( particleSystem.getMouse() );
   //console.log("d: " + d + " LastMouse; " +  particleSystem.getLastIndMouse() + " controlsState: " + particleSystem.controls.getState());
   if (d < 0.01 ) { // The difference is low so it is considered as a click

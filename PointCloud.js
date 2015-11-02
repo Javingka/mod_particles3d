@@ -97,9 +97,9 @@ PointCloud.prototype.newPositionsAndColors = function (listX, listY, listZ){
   var colors = this.pointCloud.geometry.attributes.color.array;
   for (var i = 0; i < this.count; i++)  {
     //  set position
-    var x = typeof listX === 'undefined'?(Math.random() * n - n2):(listX[i] * n2);
-    var y = typeof listY === 'undefined'?(Math.random() * n - n2):(listY[i] * n2); //Math.random() * n - n2;
-    var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[i] * n2); //Math.random() * n - n2;
+    var x = (typeof listX === 'undefined' || listX.length == 0)?(Math.random() * n - n2):(listX[i] * n2);
+    var y = (typeof listY === 'undefined' || listY.length == 0)?(Math.random() * n - n2):(listY[i] * n2); //Math.random() * n - n2;
+    var z = (typeof listZ === 'undefined' || listZ.length == 0)?(Math.random() * n - n2):(listZ[i] * n2); //Math.random() * n - n2;
     z *= -1;
 
     this.destination[ i*3 + 0 ] = x;

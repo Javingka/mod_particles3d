@@ -144,7 +144,7 @@ Scatter3d.prototype.updateSize = function(pSize) {
 Scatter3d.prototype.updateColors = function() {
   this.actualCloud.updateColors();
 }
-Scatter3d.prototype.setNewPositionsAndColors = function k(listX, listY, listZ) {
+Scatter3d.prototype.setNewPositionsAndColors = function (listX, listY, listZ) {
   this.actualCloud.newPositionsAndColors(listX, listY, listZ);
 }
 Scatter3d.prototype.animate = function () {

@@ -1,26 +1,9 @@
 
-var controls; // mouse navigation
-var container;// DOM canvas to draw
-var stats; // fps stats
-var camera, scene, renderer;
-var raycaster;
 //var mesh, line, pyMesh ;
-var defaultElementColor;
 
-var pyramidCloud;
-var pointCloud; // bufferGeometry and mesh
-var actualCloud, actualMesh;
+//var pyramidCloud;
 
-var controlsParam = [];
-
-//variable to store the selected item id and color
-var newOveredParticle = false;
-var lastIndexMouse = -1;
-var lastIndexMouseCol = new THREE.Color();
-
-var	mouse = new THREE.Vector2();
-var externalSizeRange;
-
+//var pointCloud; // bufferGeometry and mesh
 /**
  * Set a new scatter 3d
  * @param {elementCount} how many elements will be rendered
@@ -30,143 +13,158 @@ var externalSizeRange;
  * @param {listY} list of y coordinates
  * @param {listZ} list of z coordinates
  */
-function initScatter( elementCount, geometryType, selectionMode,  listX, listY, listZ  ) {
-  container = document.getElementById( 'container' );
- // elementSize= geometryType==0? elementSize:elementSize*0.1;
+function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, updating,listX, listY, listZ ) {
+  this.particleCount = elementCount;
+  this.particleSize = pSize;
+  this.axisLabels = axisL;
 
-  externalSizeRange = geometryType==0? 200:200;
+  this.stats; // fps this.stats
+  this.container;// DOM canvas to draw
+  this.controls; // controls for mouse navigation
+  this.container = document.getElementById( 'container' );
 
+
+  this.camera;
+  this.scene;
+  this.renderer;
+  this.raycaster;
+
+  this.defaultElementColor;
+
+  this.actualCloud;
+  this.actualMesh;
+  //variable to store the selected item id and color
+  this.newOveredParticle = false;
+  this.lastIndexMouse = -1;
+  this.getLastIndMouse = function() { return this.lastIndexMouse};
+  this.lastIndexMouseCol = new THREE.Color();
+
+  this.externalSizeRange = 200;
+
+  this.mouse = new THREE.Vector2();
+  this.setMouseX = function(mx){this.mouse.x= mx};
+  this.setMouseY = function(my){this.mouse.y= my};
+  this.getMouseX = function() {return this.mouse.x};
+  this.getMouseY = function() {return this.mouse.y};
+  this.getMouse = function() {return this.mouse};
   //create a camera, and set the position according the last camera visualization positions if existed
-  camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, .1, 15000);
+  this.camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, .1, 15000);
 
-  if(typeof controls !== 'undefined') {
+  if(updating) {
     console.log("loading camera position");
-    camera.position.x = controlsParam[0].x ;
-    camera.position.y = controlsParam[0].y ;
-    camera.position.z = controlsParam[0].z;
-
+    this.camera.position.x = controlsParam[0].x ;
+    this.camera.position.y = controlsParam[0].y ;
+    this.camera.position.z = controlsParam[0].z;
   } else {
-      camera.position.z = externalSizeRange*1.8; //externalSizeRange*2.8;
+      this.camera.position.z = this.externalSizeRange*1.8; //externalSizeRange*2.8;
   }
-  if(typeof actualMesh !== 'undefined') {
+  if(typeof this.actualMesh !== 'undefined') {
     console.log('removing old mesh');
-    scene.remove( actualMesh);
+    this.scene.remove( this.actualMesh);
   }
   //create the scene to render
-  scene = new THREE.Scene();
+  this.scene = new THREE.Scene();
   var near = 100;// camera.position.z - externalSizeRange * .8 ;
-  var far = near + externalSizeRange *4 ;//* .4;
-//  scene.fog = new THREE.Fog( 0x000000, near,far);
+  var far = near + this.externalSizeRange *4 ;//* .4;
+  //  scene.fog = new THREE.Fog( 0x000000, near,far);
 
   //External cube used to draw the vertices as white lines
-  var geometry = new THREE.BoxGeometry( externalSizeRange,externalSizeRange,externalSizeRange );
+  var geometry = new THREE.BoxGeometry( this.externalSizeRange,this.externalSizeRange,this.externalSizeRange );
   var material = new THREE.MeshBasicMaterial( { color: 0xffffff , opacity: 0.0, transparent: true, visible:false, fog:false} );
   var cube = new THREE.Mesh( geometry, material );
   var edges = new THREE.EdgesHelper(cube, 0xffffff );
   edges.material.linewidth = 0.5;
   edges.material.fog = false;
-  scene.add(cube);
-  scene.add(edges);
+  this.scene.add(cube);
+  this.scene.add(edges);
 
 	// raycaster to detect user interactions with mouse position
   // rayCaster to get the mouseOver info. get faces intersections to the line between the camera center and mouse position
-	raycaster = new THREE.Raycaster();
+	this.raycaster = new THREE.Raycaster();
   var threshold = 1;
-  raycaster.params.Points.threshold = threshold;
+  this.raycaster.params.Points.threshold = threshold;
 
   //Create the scatter points!
-  if(typeof listX !== 'undefined') {
+  if(typeof listX !== 'undefined') { // With the given lists
     if (geometryType == 0) {
-      actualCloud  = new PyramidMesh(externalSizeRange, elementCount, listX, listY, listZ);
+      this.actualCloud  = new PyramidMesh(this.externalSizeRange, this.particleCount, this.particleSize, listX, listY, listZ);
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount, selectionMode, listX, listY, listZ);
+      this.actualCloud = new PointCloud( this.externalSizeRange, this.particleCount, this.particleSize, selectionMode, listX, listY, listZ);
     }
   } else {
     if (geometryType == 0) {
-      actualCloud = new PyramidMesh(externalSizeRange, elementCount );
+      this.actualCloud = new PyramidMesh(this.externalSizeRange, this.particleCount, this.particleSize );
     }
     else if (geometryType == 1) {
-      actualCloud = new PointCloud( externalSizeRange, elementCount, selectionMode ); //TODO change to the receibed data
+      this.actualCloud = new PointCloud( this.externalSizeRange, this.particleCount, this.particleSize, selectionMode ); //TODO change to the receibed data
     }
   }
-  actualCloud.raycasterSetup();
-  actualMesh = actualCloud.getMesh();
-  //  actualMesh.scale.set( 10,10,10 );
-  scene.add(actualMesh);
+  this.actualCloud.setOverSpriteAndSelectionTexture( this.scene );
+  this.actualMesh = this.actualCloud.getMesh();
+  //  this.actualMesh.scale.set( 10,10,10 );
+  this.scene.add(this.actualMesh);
 
 
-	renderer = new THREE.WebGLRenderer( { antialias: false} );
-	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	this.renderer = new THREE.WebGLRenderer( { antialias: false} );
+	this.renderer.setPixelRatio( window.devicePixelRatio );
+	this.renderer.setSize( window.innerWidth, window.innerHeight );
 
   //when receive new data a new canvas is created, so delete the actual canvas element if exist
   if ($('canvas').length > 0) {
     $('canvas').remove();
   }
 
-  //adding the new canvas
-  container.appendChild( renderer.domElement );
+  // adding the new canvas element where to render the scene later
+  this.container.appendChild( this.renderer.domElement );
 
   //CONTROLS | set the controls center parameters from the last visualization if exist.exist
-  if(typeof controls === 'undefined') {
-    controls = new THREE.OrbitControls( camera, renderer.domElement);
+  if(!updating) {
+    this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement);
   } else {
-    controls = new THREE.OrbitControls( camera, renderer.domElement);
-    controls.center.x = controlsParam[1].x ;
-    controls.center.y = controlsParam[1].y ;
-    controls.center.z = controlsParam[1].z ;
-  }
+    this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement);
+    this.controls.center.x = controlsParam[1].x ;
+    this.controls.center.y = controlsParam[1].y ;
+    this.controls.center.z = controlsParam[1].z ;
+    }
 
-  settingAxisTexts();
+  // Setting the axis texts
+  this.XaxisTextSprites = [] ;
+  this.YaxisTextSprites = [] ;
+  this.ZaxisTextSprites = [] ;
+  this.settingAxisTexts();
+
 	//
 	window.addEventListener( 'resize', onWindowResize, false );
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 }
+Scatter3d.prototype.updateSize = function(pSize) {
+  this.actualCloud.pointCloud.material.size = this.particleSize = this.actualCloud.particleSize = pSize;
+}
+Scatter3d.prototype.updateColors = function() {
+  this.actualCloud.updateColors();
+}
+Scatter3d.prototype.setNewPositionsAndColors = function k(listX, listY, listZ) {
+  this.actualCloud.newPositionsAndColors(listX, listY, listZ);
+}
+Scatter3d.prototype.animate = function () {
 
-function animateScatter() {
-	requestAnimationFrame( animateScatter );
-
- 	controls.update()
+ 	this.controls.update();
+  this.actualCloud.updatePositions();
   // evaluate the raycasterIntersect only if doesn't exist any interaction with camera
-  if ( controls.getState() == -1) actualCloud.raycasterIntersect(actualMesh, actualCloud.getFacesNumber());
-  if ( controls.getState() == -1) {
-    //getScreenVector
+  if ( this.controls.getState() == -1) {
+    this.actualCloud.raycasterIntersect( this );
   }
-	renderer.render( scene, camera );
 
-  //  updateParticles();
-  updateAxisText();
+	this.renderer.render( this.scene, this.camera );
 
-  //	stats.update();
-  controlsParam[0] = controls.getPos();
-  controlsParam[1] = controls.getCenter();
+  this.updateAxisText();
+
+  //	this.stats.update();
+  controlsParam[0] = this.controls.getPos();
+  controlsParam[1] = this.controls.getCenter();
 }
 
-/*
-function updateParticles() {
-  var error=0.2;
-  var positions = pointCldMesh.geometry.attributes.position.array;
-  for(var v=0; v<PointCld.getCount(); v++){
-    var easing=0.2+(v%1000)/1000;
-    if(Math.abs(positions[ v * 3 + 0 ]-destination[ v * 3 + 0 ])>error)positions[ v * 3 + 0 ] += (destination[ v * 3 + 0 ]-positions[ v * 3 + 0 ])*.01;
-    else{
-      positions[ v * 3 + 0 ]=destination[ v * 3 + 0 ];
-    }
-    if(Math.abs(positions[ v * 3 + 1 ]-destination[ v * 3 + 1 ])>error)positions[ v * 3 + 1 ] += (destination[ v * 3 + 1 ]-positions[ v * 3 + 1 ])*.01;
-    else{
-      positions[ v * 3 + 1 ]=destination[ v * 3 + 1 ];
-    }
-    if(Math.abs(positions[ v * 3 + 2 ]-destination[ v * 3 + 2 ])>error)positions[ v * 3 + 2 ] += (destination[ v * 3 + 2 ]-positions[ v * 3 + 2 ])*.01;
-    else{
-     positions[ v * 3 + 2 ]=destination[ v * 3 + 2 ];
-    }
-  //              positions[ v * 3 + 0 ]=destination[ v * 3 + 0 ];
-  //              positions[ v * 3 + 1 ]=destination[ v * 3 + 1 ];
-  //              positions[ v * 3 + 2 ]=destination[ v * 3 + 2 ];
-  }
-  pointCldMesh.geometry.attributes.position.needsUpdate = true;
-}*/
 function getScreenVector(x, y, z, camera, width, height) {
   var p = new THREE.Vector3(x, y, z);
   var vector = p.project(camera);
@@ -178,11 +176,117 @@ function getScreenVector(x, y, z, camera, width, height) {
 }
 
 function setStats() {
-	stats = new Stats();
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.top = '0px';
+	this.stats = new Stats();
+	this.stats.domElement.style.position = 'absolute';
+	this.stats.domElement.style.top = '0px';
   if ($('#stats').length > 0) {
     $('#stats').remove();
   }
-  container.appendChild( stats.domElement );
+  this.container.appendChild( this.stats.domElement );
+}
+
+// AXIS TEXTS methods
+Scatter3d.prototype.settingAxisTexts = function (){
+	axisLabels = this.axisLabels;
+	scene = this.scene;
+ 	XaxisTextSprites = this.XaxisTextSprites;
+	YaxisTextSprites = this.YaxisTextSprites;
+	ZaxisTextSprites = this.ZaxisTextSprites;
+
+  var offsetDist = this.externalSizeRange*.6;
+  // X texts
+  XaxisTextSprites[0] = makeTextSprite( axisLabels[0],
+		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
+  XaxisTextSprites[0].position.set(0,offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+	scene.add( XaxisTextSprites[0] );
+
+  XaxisTextSprites[1] = makeTextSprite( axisLabels[0],
+		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
+  XaxisTextSprites[1].position.set(0,-offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+	scene.add( XaxisTextSprites[1] );
+
+  XaxisTextSprites[2] = makeTextSprite( axisLabels[0],
+		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
+  XaxisTextSprites[2] .position.set(0,-offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+	scene.add( XaxisTextSprites[2] );
+
+  XaxisTextSprites[3] = makeTextSprite( axisLabels[0],
+		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
+  XaxisTextSprites[3].position.set(0,offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+	scene.add( XaxisTextSprites[3] );
+
+  // Y texts
+  YaxisTextSprites[0] = makeTextSprite( axisLabels[1],
+		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
+	YaxisTextSprites[0].position.set(offsetDist, 0, offsetDist);
+	scene.add( YaxisTextSprites[0] );
+
+  YaxisTextSprites[1] = makeTextSprite( axisLabels[1],
+		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
+  YaxisTextSprites[1].position.set(-offsetDist, 0, -offsetDist);
+	scene.add( YaxisTextSprites[1] );
+
+  YaxisTextSprites[2] = makeTextSprite( axisLabels[1],
+		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
+	YaxisTextSprites[2].position.set(offsetDist, 0, -offsetDist);
+	scene.add( YaxisTextSprites[2] );
+
+  YaxisTextSprites[3] = makeTextSprite( axisLabels[1],
+		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
+	YaxisTextSprites[3].position.set(-offsetDist, 0, offsetDist);
+	scene.add( YaxisTextSprites[3] );
+
+  // Z texts
+  ZaxisTextSprites[0] = makeTextSprite( axisLabels[2],
+		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
+	ZaxisTextSprites[0].position.set(offsetDist,offsetDist,0);
+	scene.add( ZaxisTextSprites[0] );
+
+  ZaxisTextSprites[1] = makeTextSprite( axisLabels[2],
+		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
+	ZaxisTextSprites[1].position.set(-offsetDist,-offsetDist,0);
+	scene.add( ZaxisTextSprites[1] );
+
+  ZaxisTextSprites[2] = makeTextSprite( axisLabels[2],
+		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
+	ZaxisTextSprites[2].position.set(offsetDist,-offsetDist,0);
+	scene.add( ZaxisTextSprites[2] );
+
+  ZaxisTextSprites[3] = makeTextSprite( axisLabels[2],
+		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
+	ZaxisTextSprites[3].position.set(-offsetDist,offsetDist,0);
+	scene.add( ZaxisTextSprites[3] );
+}
+
+// Update the texts to set visible just the text stand out of the cube.
+Scatter3d.prototype.updateAxisText = function(){
+  this.setVisiblesTexts( this.XaxisTextSprites );
+  this.setVisiblesTexts( this.YaxisTextSprites );
+  this.setVisiblesTexts( this.ZaxisTextSprites );
+}
+
+Scatter3d.prototype.setVisiblesTexts = function( arrayPos ) {
+  var maxDist=[]; // array to store the biggest distance between the texts and the index of those texts
+  var vec2d = []; // to store the 2d position of the 3d text positions
+  vec2d[0] = findHUDPosition(this.camera, arrayPos[0]);
+  vec2d[1] = findHUDPosition(this.camera, arrayPos[1]);
+  vec2d[2] = findHUDPosition(this.camera, arrayPos[2]);
+  vec2d[3] = findHUDPosition(this.camera, arrayPos[3]);
+  maxDist = [0,0,0]; // distance, index1, index2
+
+  // compare al the distance between the four points.
+  for ( var i = 3; i > 0; i--) {
+    for (var j = 0; j < i ; j++) {
+      var d = vec2d[i].distanceTo(vec2d[j]);
+      if (d > maxDist[0]) {
+        maxDist[0] = d;
+        maxDist[1] = i;
+        maxDist[2] = j;
+      }
+    }
+  }
+  // and set visible the points with the largest distance between them. Are going to be the positions standing outside the cube.
+  for ( var i = 0 ; i < arrayPos.length; i++) {
+    arrayPos[i].visible = (maxDist[1]==i||maxDist[2]==i)?true:false;
+  }
 }

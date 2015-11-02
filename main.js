@@ -1,3 +1,5 @@
+var particleSystem;
+
 // Variables controlling the incoming color list or expression
 var expColorR;// = new Function('x,y,z,n', 'return  ( x / n ) + 0.5;');
 var expColorG;// = new Function('x,y,z,n', 'return  ( y / n ) + 0.5;');
@@ -8,13 +10,12 @@ var colorDefault;
 
 var sizeSettingType; // 0: only one size | 1: as array
 var sizeArray;
-var sizeDefault;
-var particleNumber;
 
 var onClickPos = new THREE.Vector2();
 var onClick = false;
 var onBackgroundClick = false;
-var axisLabels=[];
+
+var controlsParam = []; // array storing the last camera and controls positions.
 function onMessageReceived( event ){
 
     if (typeof event !== 'undefined' &&
@@ -24,35 +25,42 @@ function onMessageReceived( event ){
       event.data.name != 'clear-selection')
       {
       console.log( "onMessageReceived, event.data:", event.data );
-      var workingPositionLists = false;
 
-     //fetch the particle positions
-      var listX = typeof event.data[3] !== 'undefined'?event.data[3]:[]; // new mo.NumberList();
-      var listY = typeof event.data[4] !== 'undefined'?event.data[4]:[]; //new mo.NumberList();
-      var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //inverted
+      //Variables to create the particle system
+      var axisLabels=[];
+      var sizeDefault;
+      var workingPositionLists = false; // To know if the receibed list are fine.
+      var particleNumber;
+
+     //fetch the particle positions  or create a empty list
+      var listX = typeof event.data[3] !== 'undefined'?event.data[3]:[]; //
+      var listY = typeof event.data[4] !== 'undefined'?event.data[4]:[]; //
+      var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //
       console.log("lists: ",listX, listY, listZ);
 
+      //evalueate the lists lengths
       if ( listX.length == listY.length && listY.length == listZ.length && listX.length > 0) {
         particleNumber = listX.length;
         workingPositionLists = true;
-        axisLabels[0] =  typeof listX.name === 'string'? listX.name : 'X';
-        axisLabels[1] =  typeof listY.name === 'string'? listY.name : 'Y';
-        axisLabels[2] =  typeof listZ.name === 'string'? listZ.name : 'Z';
       } else {
         particleNumber = parseInt(event.data[0]);
-        axisLabels[0] =  typeof listX.name === 'string'? listX.name : 'X';
-        axisLabels[1] =  typeof listY.name === 'string'? listY.name : 'Y';
-        axisLabels[2] =  typeof listZ.name === 'string'? listZ.name : 'Z';
       }
+      //Set the axis names
+      axisLabels[0] =  typeof listX.name === 'string'? listX.name : 'X';
+      axisLabels[1] =  typeof listY.name === 'string'? listY.name : 'Y';
+      axisLabels[2] =  typeof listZ.name === 'string'? listZ.name : 'Z';
       console.log("Axis labels: ", axisLabels);
 
-       //type of geometryElement
+      //type of geometryElement
       var geometryType = 1;
-      var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:1; // 0 → pyramid | 1 → square
       console.log("geometry type: ", geometryType, " → ", (geometryType==0?"pyramids":"square") );
+      // tyoe of selection element
+      var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:1; //
+      console.log("selectionMode: ", selectionMode, " → ", (selectionMode==0?"single selection":"multiple selection") );
 
       //the particle sizes
-      var incomingSize = event.data[1]; // 4 - 10 are good sizes to large elements
+      var incomingSize = event.data[1]; // 1 - 4 are good sizes to large elements
+      // if the size is an array TODO: Make it works ( by now we manage just one size for all particles)
       if ( Array.isArray( incomingSize) && incomingSize.length == listX.length && workingPositionLists ) {
         sizeSettingType = 1;
         sizeArray = incomingSize;
@@ -71,8 +79,9 @@ function onMessageReceived( event ){
       var Cz = event.data[2][2];
       var myRe = /(\d,\d,\d)/;
       var regEx = myRe.exec(Cx);
-      console.log("regEx: ", regEx, " Cx ", Cx);
+      //console.log("regEx: ", regEx, " Cx ", Cx);
       if ( event.data[2].length == 3 && regEx == null && typeof Cx === 'string' && typeof Cy === 'string' && typeof Cz === 'string' ){
+        console.log('setting method to define colors');
         colorSettingType = 0; //the color is set by expressions to be evaluated
         expColorR = new Function('x,y,z,n', 'return '+ Cx );
         expColorG = new Function('x,y,z,n', 'return '+ Cy );
@@ -90,16 +99,55 @@ function onMessageReceived( event ){
 
       // send a parent message to clean possible old data
       createSendMessageToParent( [-1,-1], 'rollover');
+
       //if the lists have the same lenght and have more than 1 element. use the list to get the particles number
       if (workingPositionLists){
-        initScatter( particleNumber , geometryType, selectionMode, listX, listY, listZ );
+        console.log('The receibed message has a valid position list');
+        // the first call to create a particle system
+        if ( typeof particleSystem === 'undefined') {
+          console.log('First particle System creation');
+          particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, false, listX, listY, listZ );
+        } else
+        { // Or update the actual system
+          console.log('Update the particle System');
+          //If it has the same positions length. Update just that.
+          if ( particleSystem.particleCount == particleNumber) {
+            particleSystem.setNewPositionsAndColors(listX, listY, listZ);
+            particleSystem.updateSize(sizeDefault);
+            particleSystem.actualCloud.setOverSpriteAndSelectionTexture( particleSystem.scene );
+            console.log('The new list has the same length than last one');
+          } else {
+            console.log('the new message has a different length so make it all again');
+            particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, true, listX, listY, listZ );
+          }
+        }
       }
       else {
-        initScatter( particleNumber , geometryType, selectionMode );
+        console.log('The receibed message has a invalid position list');
+        if ( typeof particleSystem === 'undefined') {
+          console.log('First particle System creation');
+          particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, false);
+        } else { // Or update the actual system
+          console.log('Update the particle System');
+          //If it has the same positions length. Update just that.
+          if ( particleSystem.particleCount == particleNumber) {
+            particleSystem.setNewPositionsAndColors(listX, listY, listZ);
+            particleSystem.updateSize(sizeDefault);
+            particleSystem.actualCloud.setOverSpriteAndSelectionTexture( particleSystem.scene );
+            console.log('The new list has the same length than last one');
+          } else {
+            console.log('the new message has a different length so make it all again');
+            particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, true);
+          }
+        }
       }
-      animateScatter();
+      animate( );
+      //particleSystem.animateScatter();
     }
-
+}
+function animate() {
+	requestAnimationFrame( animate );
+  particleSystem.animate();
 }
 
 function onWindowResize() {
@@ -110,8 +158,8 @@ function onWindowResize() {
 
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+	particleSystem.setMouseX( ( event.clientX / window.innerWidth ) * 2 - 1 );
+	particleSystem.setMouseY(- ( event.clientY / window.innerHeight ) * 2 + 1 );
 //  if (controls.getState() ==0 ) onClick = false;
 }
 // when the mouse moves, call the given function
@@ -119,15 +167,24 @@ document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 document.addEventListener( 'mouseup', onMouseUp, false );
 function onDocumentMouseDown( event )
 {
-  onClickPos.x = mouse.x;
-  onClickPos.y = mouse.y;
+  onClickPos.x = particleSystem.getMouseX();
+  onClickPos.y = particleSystem.getMouseY();
 }
 function onMouseUp( event ) {
-  var d = onClickPos.distanceTo(mouse);
 
-  if (d < 0.01) { // The difference is low so it is considered as a click
-    if ( lastIndexMouse != -1 && controls.getState() !=1 ) onClick = true;
-    if ( lastIndexMouse == -1 && controls.getState() !=1 ) onBackgroundClick = true;
+  console.log(particleSystem.actualCloud.onTransition);
+  var d = onClickPos.distanceTo( particleSystem.getMouse() );
+  //console.log("d: " + d + " LastMouse; " +  particleSystem.getLastIndMouse() + " controlsState: " + particleSystem.controls.getState());
+  if (d < 0.01 ) { // The difference is low so it is considered as a click
+    if ( particleSystem.actualCloud.lastIndexMouse != -1 && particleSystem.controls.getState() !=1 )
+    {
+      if (particleSystem.actualCloud.onTransition ) alert("Wait until the particles stop to select them");
+      else onClick = true;
+    }
+    if ( particleSystem.actualCloud.lastIndexMouse == -1 && particleSystem.controls.getState() !=1)
+    {
+     onBackgroundClick = true;
+    }
   }
 }
 

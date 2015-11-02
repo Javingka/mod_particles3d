@@ -49,110 +49,11 @@ function makeTextSprite( message, parameters )
 	return sprite;
 }
 
-var XaxisTextSprites = [] ;
-var YaxisTextSprites = [] ;
-var ZaxisTextSprites = [] ;
-function settingAxisTexts(){
-  var offsetDist = externalSizeRange*.6;
-  // X texts
-  XaxisTextSprites[0] = makeTextSprite( axisLabels[0],
-		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
-  XaxisTextSprites[0].position.set(0,offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
-	scene.add( XaxisTextSprites[0] );
 
-  XaxisTextSprites[1] = makeTextSprite( axisLabels[0],
-		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
-  XaxisTextSprites[1].position.set(0,-offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
-	scene.add( XaxisTextSprites[1] );
 
-  XaxisTextSprites[2] = makeTextSprite( axisLabels[0],
-		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
-  XaxisTextSprites[2] .position.set(0,-offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
-	scene.add( XaxisTextSprites[2] );
-
-  XaxisTextSprites[3] = makeTextSprite( axisLabels[0],
-		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
-  XaxisTextSprites[3].position.set(0,offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
-	scene.add( XaxisTextSprites[3] );
-
-  // Y texts
-  YaxisTextSprites[0] = makeTextSprite( axisLabels[1],
-		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
-	YaxisTextSprites[0].position.set(offsetDist, 0, offsetDist);
-	scene.add( YaxisTextSprites[0] );
-
-  YaxisTextSprites[1] = makeTextSprite( axisLabels[1],
-		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
-  YaxisTextSprites[1].position.set(-offsetDist, 0, -offsetDist);
-	scene.add( YaxisTextSprites[1] );
-
-  YaxisTextSprites[2] = makeTextSprite( axisLabels[1],
-		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
-	YaxisTextSprites[2].position.set(offsetDist, 0, -offsetDist);
-	scene.add( YaxisTextSprites[2] );
-
-  YaxisTextSprites[3] = makeTextSprite( axisLabels[1],
-		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
-	YaxisTextSprites[3].position.set(-offsetDist, 0, offsetDist);
-	scene.add( YaxisTextSprites[3] );
-
-  // Z texts
-  ZaxisTextSprites[0] = makeTextSprite( axisLabels[2],
-		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
-	ZaxisTextSprites[0].position.set(offsetDist,offsetDist,0);
-	scene.add( ZaxisTextSprites[0] );
-
-  ZaxisTextSprites[1] = makeTextSprite( axisLabels[2],
-		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
-	ZaxisTextSprites[1].position.set(-offsetDist,-offsetDist,0);
-	scene.add( ZaxisTextSprites[1] );
-
-  ZaxisTextSprites[2] = makeTextSprite( axisLabels[2],
-		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
-	ZaxisTextSprites[2].position.set(offsetDist,-offsetDist,0);
-	scene.add( ZaxisTextSprites[2] );
-
-  ZaxisTextSprites[3] = makeTextSprite( axisLabels[2],
-		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
-	ZaxisTextSprites[3].position.set(-offsetDist,offsetDist,0);
-	scene.add( ZaxisTextSprites[3] );
-}
-
-// Update the texts to set visible just the text stand out of the cube.
-function updateAxisText(){
-  setVisiblesTexts( XaxisTextSprites );
-  setVisiblesTexts( YaxisTextSprites );
-  setVisiblesTexts( ZaxisTextSprites );
-}
-
-function setVisiblesTexts( arrayPos ) {
-  var maxDist=[]; // array to store the biggest distance between the texts and the index of those texts
-  var vec2d = []; // to store the 2d position of the 3d text positions
-  vec2d[0] = findHUDPosition(arrayPos[0]);
-  vec2d[1] = findHUDPosition(arrayPos[1]);
-  vec2d[2] = findHUDPosition(arrayPos[2]);
-  vec2d[3] = findHUDPosition(arrayPos[3]);
-  maxDist = [0,0,0]; // distance, index1, index2
-
-  // compare al the distance between the four points.
-  for ( var i = 3; i > 0; i--) {
-    for (var j = 0; j < i ; j++) {
-      var d = vec2d[i].distanceTo(vec2d[j]);
-      if (d > maxDist[0]) {
-        maxDist[0] = d;
-        maxDist[1] = i;
-        maxDist[2] = j;
-      }
-    }
-  }
-  // and set visible the points with the largest distance between them. Are going to be the positions standing outside the cube.
-  for ( var i = 0 ; i < arrayPos.length; i++) {
-    arrayPos[i].visible = (maxDist[1]==i||maxDist[2]==i)?true:false;
-  }
-}
 
 // get the 2d screen position of the object
-function findHUDPosition (obj) {
+function findHUDPosition (camera, obj) {
       var vector = new THREE.Vector3();
       var windowHalfX = window.innerWidth/2;
       var windowHalfY = window.innerHeight/2;

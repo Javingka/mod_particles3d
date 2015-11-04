@@ -55,7 +55,7 @@ function onMessageReceived( event ){
       var geometryType = 1;
       console.log("geometry type: ", geometryType, " → ", (geometryType==0?"pyramids":"square") );
       // tyoe of selection element
-      var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:1; //
+      var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:0; //
       console.log("selectionMode: ", selectionMode, " → ", (selectionMode==0?"single selection":"multiple selection") );
 
       //the particle sizes
@@ -115,6 +115,11 @@ function onMessageReceived( event ){
             particleSystem.setNewPositionsAndColors(listX, listY, listZ);
             particleSystem.updateSize(sizeDefault);
             particleSystem.actualCloud.setOverSpriteAndSelectionTexture( particleSystem.scene );
+            particleSystem.axisLabels = axisLabels;
+            particleSystem.settingAxisTexts();
+            if (particleSystem.actualCloud.selMode == 1 ) // if previous is multi selection
+              particleSystem.actualCloud.clearSelection(); // clean it
+            particleSystem.actualCloud.selMode = selectionMode;
             console.log('The new list has the same length than last one');
           } else {
             console.log('the new message has a different length so make it all again');
@@ -152,12 +157,17 @@ function onDocumentMouseMove( event ) {
 	particleSystem.setMouseX( ( event.clientX / window.innerWidth ) * 2 - 1 );
 	particleSystem.setMouseY(- ( event.clientY / window.innerHeight ) * 2 + 1 );
 }
+// Register to the 'message' event to get the previous function called
+window.addEventListener( "message", onMessageReceived, false);
 // when the mouse moves, call the given function
 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 document.addEventListener( 'mouseup', onMouseUp, false );
+window.addEventListener( 'keydown', onKeyDown, false );
+window.addEventListener( 'keyup', onKeyUp, false );
 function onDocumentMouseDown( event ) {
   onClickPos.x = particleSystem.getMouseX();
   onClickPos.y = particleSystem.getMouseY();
+  particleSystem.cameraUp.set(0,1,0);
 }
 function onMouseUp( event ) {
   //console.log(particleSystem.actualCloud.onTransition);
@@ -166,8 +176,7 @@ function onMouseUp( event ) {
   if (d < 0.01 ) { // The difference is low so it is considered as a click
     if ( particleSystem.actualCloud.lastIndexMouse != -1 && particleSystem.controls.getState() !=1 )
     {
-      if (particleSystem.actualCloud.onTransition ) alert("Wait until the particles stop to select them");
-      else onClick = true;
+      if (!particleSystem.actualCloud.onTransition ) onClick = true; // just detect when the particles are static
     }
     if ( particleSystem.actualCloud.lastIndexMouse == -1 && particleSystem.controls.getState() !=1)
     {
@@ -176,9 +185,27 @@ function onMouseUp( event ) {
   }
 }
 
-// Register to the 'message' event to get the previous function called
-window.addEventListener( "message", onMessageReceived, false);
-
+function onKeyDown( event ) {
+  var cameraToView = "";
+  switch (event.keyCode) {
+    case 49:
+    case 97:
+      cameraToView = 'xy'
+      break;
+    case 50:
+    case 98:
+      cameraToView = 'xz'
+      break;
+    case 51:
+    case 99:
+      cameraToView = 'yz'
+      break;
+    default:
+  }
+  particleSystem.cameraTo(cameraToView);
+}
+function onKeyUp( event ) {
+}
 // A simple function to send messages to the parent window
 function sendMessageToParent( message ){
   parent.postMessage( message, '*' );

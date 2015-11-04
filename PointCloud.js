@@ -38,9 +38,9 @@ function PointCloud(externalSizeRange, count, pSize, selectionM, listX, listY, l
     var z = typeof listZ === 'undefined'?(Math.random() * n - n2):(listZ[i] * n2); //Math.random() * n - n2;
     z *= -1;
 
-    positions[ i*3 + 0 ] = 0;//x;
-    positions[ i*3 + 1 ] = 0;// y;
-    positions[ i*3 + 2 ] = 0;//z;
+    positions[ i*3 + 0 ] = x;//x;
+    positions[ i*3 + 1 ] = y;// y;
+    positions[ i*3 + 2 ] = z;//z;
     this.destination[ i*3 + 0 ] = x;
     this.destination[ i*3 + 1 ] = y;
     this.destination[ i*3 + 2 ] = z;
@@ -205,18 +205,7 @@ PointCloud.prototype.raycasterIntersect = function( obj){
   // When clicked the backgrond
   if (onBackgroundClick)
   {
-    // set all particles to unselected
-    for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
-      this.clickStateParticles[ this.clickedParticles[i][0] ] = false;
-      // get the particle state from the index within the clickedParticles list
-      if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
-      { // if it false. return this particle state to false. and remove the object scene drawed
-        this.restoreParticleToOff(this.clickedParticles[i],this.pointCloud);
-        this.clickedParticles.splice(i, 1);
-      }
-    }
-    createSendMessageToParent( [-1,-1], 'clear-selection');
-    onBackgroundClick = false;
+    this.clearSelection();
   }
 
   // When has a overed particle and receibe a click
@@ -309,6 +298,21 @@ PointCloud.prototype.raycasterIntersect = function( obj){
     onClick = false;
   }
 };
+PointCloud.prototype.clearSelection = function () {
+    // set all particles to unselected
+    for(var i = this.clickedParticles.length -1; i >= 0 ; i--){
+      this.clickStateParticles[ this.clickedParticles[i][0] ] = false;
+      // get the particle state from the index within the clickedParticles list
+      if(this.clickStateParticles[ this.clickedParticles[i][0] ] == false)
+      { // if it false. return this particle state to false. and remove the object scene drawed
+        this.restoreParticleToOff(this.clickedParticles[i],this.pointCloud);
+        this.clickedParticles.splice(i, 1);
+      }
+    }
+    createSendMessageToParent( [-1,-1], 'clear-selection');
+    onBackgroundClick = false;
+
+}
 PointCloud.prototype.updatePositions = function(){
   if (this.onTransition ) {
     var error=0.3;

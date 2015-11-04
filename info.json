@@ -1,58 +1,53 @@
 {
-	"name":"ScatterCube",
-	"description":"receives the number of elements, size, colors and three list of positions for a scatterplot with 3 dimensions.",
-	"tags":"draw,area",
-	"familiy":"basic",
-	"authors":"Javier Cruz",
-	"version":"0.1",
-	"thumbnail":"",
-	"params":[
-		{
-			"type":"Number",
-			"name":"count",
-			"description":"The number of elements to draw. Used if no position arrays are defined or if it have different lengths",
-			"optional":false
-		},
-		{
-			"type":"Number",
-			"name":"size",
-			"description":"Number to define the same size for all elements. (1-4)",
-			"optional":false
-		},
-		{
-			"type":"Array",
-			"name":"ColorArray",
-			"description":"Strings array or Arrays array with the list of colors for each element. Or Array with three expressions, each one to define the red, green and blue values of each point.
-			These expressions can use the following variables:
-			x → x pos of the point(-1 to 1) |
-			y → y pos of the point(-1 to 1) |
-			z → z pos of the point(-1 to 1) |
-			i → index of the element ",
-			"optional":false
-		},
-		{
-			"type":"Array",
-			"name":"listX",
-			"description":"Array with the x positions of the points",
-			"optional":false
-		},
-		{
-			"type":"Array",
-			"name":"listY",
-			"description":"Array with the y positions of the points",
-			"optional":false
-		},
-		{
-			"type":"Array",
-			"name":"listZ",
-			"description":"Array with the z positions of the points",
-			"optional":false
-		},
-		{
-			"type":"Number",
-			"name":"Selection mode",
-			"description":"0: single selection \n 1: multiple selection",
-			"optional":true
-		}
-	]
+    "name": "ScatterCube",
+    "description": "receives the number of elements, size, colors and three list of positions for a scatterplot with 3 dimensions.",
+    "tags": "draw,area",
+    "familiy": "basic",
+    "authors": "Javier Cruz",
+    "version": "0.1",
+    "thumbnail": "",
+    "params": [
+        {
+            "type": "Number",
+            "name": "count",
+            "description": "The number of elements to draw. Used if no position arrays are defined or if it have different lengths",
+            "optional": false
+        },
+        {
+            "type": "Number",
+            "name": "size",
+            "description": "Number to define the same size for all elements. (1-4)",
+            "optional": false
+        },
+        {
+            "type": "Array",
+            "name": "ColorArray",
+            "description": "Strings array or Arrays array with the list of normalized colors (rgb) for each element. Or Array with 3 expressions, can use 'x','y','z' positions, and 'i' index for each element ",
+            "optional": false
+        },
+        {
+            "type": "Array",
+            "name": "listX",
+            "description": "Array with the x positions of the points",
+            "optional": false
+        },
+        {
+            "type": "Array",
+            "name": "listY",
+            "description": "Array with the y positions of the points",
+            "optional": false
+        },
+        {
+            "type": "Array",
+            "name": "listZ",
+            "description": "Array with the z positions of the points",
+            "optional": false
+        },
+        {
+            "type": "Number",
+            "name": "Selection mode",
+            "description": "0: single selection \n 1: multiple selection",
+            "optional": true
+        }
+    ]
 }

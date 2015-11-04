@@ -17,12 +17,16 @@ function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, upd
   this.particleCount = elementCount;
   this.particleSize = pSize;
   this.axisLabels = axisL;
+  // to know when the camera is moving '' No move. or 'xy''xz''yz'
+  this.cameraTransition = '';
+  this.cameraTransPos = new THREE.Vector3();
+  this.cameraUp = new THREE.Vector3();
+  this.cameraTransAng;
 
   this.stats; // fps this.stats
   this.container;// DOM canvas to draw
   this.controls; // controls for mouse navigation
   this.container = document.getElementById( 'container' );
-
 
   this.camera;
   this.scene;
@@ -48,8 +52,8 @@ function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, upd
   this.getMouseY = function() {return this.mouse.y};
   this.getMouse = function() {return this.mouse};
   //create a camera, and set the position according the last camera visualization positions if existed
-  this.camera = new THREE.PerspectiveCamera( 15, window.innerWidth / window.innerHeight, .1, 15000);
-
+  this.camera = new THREE.PerspectiveCamera( 16, window.innerWidth / window.innerHeight, .1, 15000);
+  //this.camera = new THREE.CombinedCamera( window.innerWidth / 2, window.innerHeight / 2, 70, 1, 1000, - 500, 1000 );
   if(updating) {
     console.log("loading camera position");
     this.camera.position.x = controlsParam[0].x ;
@@ -129,9 +133,6 @@ function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, upd
     }
 
   // Setting the axis texts
-  this.XaxisTextSprites = [] ;
-  this.YaxisTextSprites = [] ;
-  this.ZaxisTextSprites = [] ;
   this.settingAxisTexts();
 
 	//
@@ -149,6 +150,14 @@ Scatter3d.prototype.setNewPositionsAndColors = function (listX, listY, listZ) {
 }
 Scatter3d.prototype.animate = function () {
 
+  // if the camera is in transition, update the up vector, defined in updatCameraPos
+  if (this.cameraTransition) {
+    this.camera.up.lerp(this.cameraUp, .1)
+    this.updateCameraPos();
+  } else {
+    //this will set up camera back to (0,1,0)
+    this.camera.up.lerp(this.cameraUp, .05)
+  }
  	this.controls.update();
   this.actualCloud.updatePositions();
   // evaluate the raycasterIntersect only if doesn't exist any interaction with camera
@@ -159,12 +168,61 @@ Scatter3d.prototype.animate = function () {
 	this.renderer.render( this.scene, this.camera );
 
   this.updateAxisText();
+//  console.log(  particleSystem.camera.position);
 
   //	this.stats.update();
   controlsParam[0] = this.controls.getPos();
   controlsParam[1] = this.controls.getCenter();
 }
-
+Scatter3d.prototype.cameraTo = function( view ) {
+  this.cameraTransition = view;
+  console.log('move camera to: ' + view );
+  this.cameraTransPos = particleSystem.camera.position.clone();
+  this.cameraTransPos.y = 0;
+}
+Scatter3d.prototype.updateCameraPos = function () {
+  var cameraDist = this.externalSizeRange * 6;
+  switch (this.cameraTransition) {
+    case 'xy':
+      this.cameraUp.set(0,1,0);
+      //this.camera.up.set(0,1,0);
+      var posTo = new THREE.Vector3(0,0,cameraDist);
+      break;
+    case 'xz':
+      //this.cameraUp.set(0,0,-1);
+      //this.camera.up.set(0,0,-1);
+      this.cameraUp.set(0,0,-1);
+      var posTo = new THREE.Vector3(0,cameraDist,0);
+      break;
+    case 'yz':
+      this.cameraUp.set(0,1,0);
+      //this.camera.up.set(0,1,0);
+      var posTo = new THREE.Vector3(cameraDist,0,0);
+      break;
+    default:
+  }
+  //console.log(this.camera.up.lerp(this.cameraUp, .1) );
+  this.camera.position.lerp(posTo, .1);
+  var d = this.camera.position.distanceTo(posTo);
+  //console.log(d);
+  if ( d < .05 ) {
+     if(this.cameraTransition == 'xz'){
+      this.camera.position = posTo.clone();
+    //  this.camera.position.applyAxisAngle(new THREE.Vector3(0,0,1),-(Math.PI/2) )
+    } else {
+      this.camera.position = posTo.clone();
+    }
+    console.log("Camera on Place");
+    this.cameraTransition = '';
+    //   var refA = new THREE.Vector3(0,0,-1);
+    //   var a = refA.angleTo(this.cameraTransPos);
+    //   this.camera.position.applyAxisAngle(new THREE.Vector3(0,1,0),-(a%Math.PI) )
+    //   this.cameraTransition = '';
+    //   console.log("Camera on Place");
+    // }else {
+    //}
+  }
+}
 function getScreenVector(x, y, z, camera, width, height) {
   var p = new THREE.Vector3(x, y, z);
   var vector = p.project(camera);
@@ -187,7 +245,10 @@ function setStats() {
 
 // AXIS TEXTS methods
 Scatter3d.prototype.settingAxisTexts = function (){
-	axisLabels = this.axisLabels;
+	this.XaxisTextSprites = [] ;
+  this.YaxisTextSprites = [] ;
+  this.ZaxisTextSprites = [] ;
+  axisLabels = this.axisLabels;
 	scene = this.scene;
  	XaxisTextSprites = this.XaxisTextSprites;
 	YaxisTextSprites = this.YaxisTextSprites;
@@ -198,66 +259,96 @@ Scatter3d.prototype.settingAxisTexts = function (){
   XaxisTextSprites[0] = makeTextSprite( axisLabels[0],
 		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
   XaxisTextSprites[0].position.set(0,offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
-	scene.add( XaxisTextSprites[0] );
+  XaxisTextSprites[0].name = 'Xaxis0';
+  removeFromSceneObjByName('Xaxis0', scene);
+  scene.add( XaxisTextSprites[0] );
 
   XaxisTextSprites[1] = makeTextSprite( axisLabels[0],
 		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
   XaxisTextSprites[1].position.set(0,-offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+  XaxisTextSprites[1].name = 'Xaxis1';
+  removeFromSceneObjByName('Xaxis1', scene);
 	scene.add( XaxisTextSprites[1] );
 
   XaxisTextSprites[2] = makeTextSprite( axisLabels[0],
 		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
   XaxisTextSprites[2] .position.set(0,-offsetDist,offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+  XaxisTextSprites[2].name = 'Xaxis2';
+  removeFromSceneObjByName('Xaxis2', scene);
 	scene.add( XaxisTextSprites[2] );
 
   XaxisTextSprites[3] = makeTextSprite( axisLabels[0],
 		{ fontsize: 18, borderColor: {r:255, g:0, b:0, a:1.0}, backgroundColor: {r:255, g:200, b:200, a:0.8} } );
   XaxisTextSprites[3].position.set(0,offsetDist,-offsetDist); //-externalSizeRange*.5,externalSizeRange*.5);
+  XaxisTextSprites[3].name = 'Xaxis3';
+  removeFromSceneObjByName('Xaxis3', scene);
 	scene.add( XaxisTextSprites[3] );
 
   // Y texts
   YaxisTextSprites[0] = makeTextSprite( axisLabels[1],
 		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
 	YaxisTextSprites[0].position.set(offsetDist, 0, offsetDist);
+  YaxisTextSprites[0].name = 'Yaxis0';
+  removeFromSceneObjByName('Yaxis0', scene);
 	scene.add( YaxisTextSprites[0] );
 
   YaxisTextSprites[1] = makeTextSprite( axisLabels[1],
 		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
   YaxisTextSprites[1].position.set(-offsetDist, 0, -offsetDist);
+  YaxisTextSprites[1].name = 'Yaxis1';
+  removeFromSceneObjByName('Yaxis1', scene);
 	scene.add( YaxisTextSprites[1] );
 
   YaxisTextSprites[2] = makeTextSprite( axisLabels[1],
 		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
 	YaxisTextSprites[2].position.set(offsetDist, 0, -offsetDist);
+  YaxisTextSprites[2].name = 'Yaxis2';
+  removeFromSceneObjByName('Yaxis2', scene);
 	scene.add( YaxisTextSprites[2] );
 
   YaxisTextSprites[3] = makeTextSprite( axisLabels[1],
 		{ fontsize: 18, borderColor: {r:0, g:255, b:0, a:1.0}, backgroundColor: {r:200, g:255, b:200, a:0.8} } );
 	YaxisTextSprites[3].position.set(-offsetDist, 0, offsetDist);
+  YaxisTextSprites[3].name = 'Yaxis3';
+  removeFromSceneObjByName('Yaxis3', scene);
 	scene.add( YaxisTextSprites[3] );
 
   // Z texts
   ZaxisTextSprites[0] = makeTextSprite( axisLabels[2],
 		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
 	ZaxisTextSprites[0].position.set(offsetDist,offsetDist,0);
+  ZaxisTextSprites[0].name = 'Zaxis0';
+  removeFromSceneObjByName('Zaxis0', scene);
 	scene.add( ZaxisTextSprites[0] );
 
   ZaxisTextSprites[1] = makeTextSprite( axisLabels[2],
 		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
 	ZaxisTextSprites[1].position.set(-offsetDist,-offsetDist,0);
+  ZaxisTextSprites[1].name = 'Zaxis1';
+  removeFromSceneObjByName('Zaxis1', scene);
 	scene.add( ZaxisTextSprites[1] );
 
   ZaxisTextSprites[2] = makeTextSprite( axisLabels[2],
 		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
 	ZaxisTextSprites[2].position.set(offsetDist,-offsetDist,0);
+  ZaxisTextSprites[2].name = 'Zaxis2';
+  removeFromSceneObjByName('Zaxis2', scene);
 	scene.add( ZaxisTextSprites[2] );
 
   ZaxisTextSprites[3] = makeTextSprite( axisLabels[2],
 		{ fontsize: 18, fontface: "Georgia", borderColor: {r:0, g:0, b:255, a:1.0}, backgroundColor: {r:200, g:200, b:255, a:0.8} } );
 	ZaxisTextSprites[3].position.set(-offsetDist,offsetDist,0);
+  ZaxisTextSprites[3].name = 'Zaxis3';
+  removeFromSceneObjByName('Zaxis3', scene);
 	scene.add( ZaxisTextSprites[3] );
 }
-
+function removeFromSceneObjByName( name, scn) {
+  var object = scn.getObjectByName( name  );
+  if (object) {
+    // If object exist remove to create a new sprite
+    scn.remove(object);
+  }
+}
 // Update the texts to set visible just the text stand out of the cube.
 Scatter3d.prototype.updateAxisText = function(){
   this.setVisiblesTexts( this.XaxisTextSprites );

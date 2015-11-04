@@ -162,8 +162,9 @@ window.addEventListener( "message", onMessageReceived, false);
 // when the mouse moves, call the given function
 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 document.addEventListener( 'mouseup', onMouseUp, false );
-window.addEventListener( 'keydown', onKeyDown, false );
-window.addEventListener( 'keyup', onKeyUp, false );
+
+document.addEventListener( 'keydown', onKeyDown, false );
+document.addEventListener( 'keyup', onKeyUp, false );
 function onDocumentMouseDown( event ) {
   onClickPos.x = particleSystem.getMouseX();
   onClickPos.y = particleSystem.getMouseY();

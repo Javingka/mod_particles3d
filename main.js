@@ -16,6 +16,9 @@ var onClick = false;
 var onBackgroundClick = false;
 
 var controlsParam = []; // array storing the last camera and controls positions.
+var listXi;
+var prevAnglesArray;
+var anglesArrayDefault = [Math.PI*.5,0];
 function onMessageReceived( event ){
 
     if (typeof event !== 'undefined' &&
@@ -33,7 +36,7 @@ function onMessageReceived( event ){
       var particleNumber;
 
      //fetch the particle positions  or create a empty list
-      var listX = typeof event.data[3] !== 'undefined'?event.data[3]:[]; //
+      var listX = listXi = typeof event.data[3] !== 'undefined'?event.data[3]:[]; //
       var listY = typeof event.data[4] !== 'undefined'?event.data[4]:[]; //
       var listZ = typeof event.data[5] !== 'undefined'?event.data[5]:[]; //
       console.log("lists: ",listX, listY, listZ);
@@ -57,6 +60,22 @@ function onMessageReceived( event ){
       // tyoe of selection element
       var selectionMode = typeof event.data[6] !== 'undefined'?event.data[6]:0; //
       console.log("selectionMode: ", selectionMode, " → ", (selectionMode==0?"single selection":"multiple selection") );
+
+      // View Angles
+      var anglesArray = Array.isArray(event.data[7])?event.data[7]:anglesArrayDefault ;
+      //var anglesChanged = event.data[7]!= prevAnglesArray
+      var anglesChanged;
+      console.log('anglesChanged: ' , anglesChanged, ' anglesArray: ' , anglesArray);
+      if (anglesArray[0] == prevAnglesArray[0] && anglesArray[1] == prevAnglesArray[1]) {
+        anglesChanged = false;
+      } else {
+        anglesChanged = true;
+      }
+      prevAnglesArray = event.data[7];
+      console.log('anglesChanged: ' , anglesChanged);
+      var phiAng = Array.isArray(event.data[7])?event.data[7][0]:Math.PI*.5;
+      var thetaAng = Array.isArray(event.data[7])?event.data[7][1]:0;
+      console.log('phi: ' + phiAng + ' theta: ' + thetaAng);
 
       //the particle sizes
       var incomingSize = event.data[1]; // 1 - 4 are good sizes to large elements
@@ -107,6 +126,7 @@ function onMessageReceived( event ){
         if ( typeof particleSystem === 'undefined') {
           console.log('First particle System creation');
           particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, false, listX, listY, listZ );
+          particleSystem.setPhiTheta(phiAng,thetaAng);
         } else
         { // Or update the actual system
           console.log('Update the particle System');
@@ -120,10 +140,12 @@ function onMessageReceived( event ){
             if (particleSystem.actualCloud.selMode == 1 ) // if previous is multi selection
               particleSystem.actualCloud.clearSelection(); // clean it
             particleSystem.actualCloud.selMode = selectionMode;
+            if (anglesChanged) particleSystem.setPhiTheta(phiAng,thetaAng);
             console.log('The new list has the same length than last one');
           } else {
             console.log('the new message has a different length so make it all again');
             particleSystem = new Scatter3d( particleNumber , geometryType, sizeDefault, axisLabels, selectionMode, true, listX, listY, listZ );
+            particleSystem.setPhiTheta(phiAng,thetaAng);
           }
         }
       }

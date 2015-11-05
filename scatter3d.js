@@ -14,6 +14,10 @@
  * @param {listZ} list of z coordinates
  */
 function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, updating,listX, listY, listZ ) {
+  this.listX = listX;
+  this.listY = listY;
+  this.listZ = listZ;
+
   this.particleCount = elementCount;
   this.particleSize = pSize;
   this.axisLabels = axisL;
@@ -138,6 +142,35 @@ function Scatter3d( elementCount, geometryType, pSize, axisL, selectionMode, upd
 	//
 	window.addEventListener( 'resize', onWindowResize, false );
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+}
+Scatter3d.prototype.updateAngs = function(a,b) {
+  var cameraDist = this.externalSizeRange * 6;
+  //first alfa angle
+  var px = Math.sin(a);
+  var pz = Math.cos(a);
+  var vA = new THREE.Vector3(px,0,pz);
+//  this.camera.position.set(px, 0, pz);
+  //second beta angle
+  var py = Math.sin(b);
+  var pz = Math.cos(b);
+  var vB = new THREE.Vector3(0,py,pz);
+
+  var vR = new THREE.Vector3();
+  vR.addVectors(vA,vB);
+  vR.setLength(cameraDist);
+  this.camera.position.set(vR.x, vR.y, vR.z);
+}
+/*
+  0   >= Phi   <= PI
+  -PI >= Theta <= PI
+*/
+Scatter3d.prototype.setPhiTheta= function(p,t) {
+  this.controls.setPhi(p);
+  this.controls.setTheta(t);
+}
+Scatter3d.prototype.updateAngB = function(a) {
+  var cameraDist = this.externalSizeRange * 6;
+  this.camera.position.set(0, cameraDist*Math.sin(a), cameraDist*Math.cos(a))
 }
 Scatter3d.prototype.updateSize = function(pSize) {
   this.actualCloud.pointCloud.material.size = this.particleSize = this.actualCloud.particleSize = pSize;

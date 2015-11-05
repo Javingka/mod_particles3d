@@ -48,6 +48,12 @@
             "name": "Selection mode",
             "description": "0: single selection \n 1: multiple selection",
             "optional": true
+        },
+        {
+            "type": "Array",
+            "name": "Camera angles. Phi and Theta",
+            "description": "Two values= [0]: 0 <= Phi angle <= PI \n [1]: -PI <= Theta angle <= PI ",
+            "optional": true
         }
     ]
 }

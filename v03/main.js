@@ -236,6 +236,7 @@ function sendMessageToParent( message ){
 
 function createSendMessageToParent (a,n) {
   a.name = n;
-  sendMessageToParent( a ); // SEND!! message to Lichen
+  var msg =  { message:'output', data:a };
+  sendMessageToParent( msg ); // SEND!! message to Lichen
 //  console.log(n, ' send to parent with the value:  ',a );
 }
